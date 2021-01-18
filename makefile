@@ -10,9 +10,11 @@ EXEC = test
 all: $(BIN)/$(EXEC)
 
 run: clean all
-	clear
 	@echo "Executing..."
 	./$(BIN)/$(EXEC)
+
+valgrind:
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./$(BIN)/$(EXEC)
 
 $(BIN)/$(EXEC): $(SRC)
 	clear
