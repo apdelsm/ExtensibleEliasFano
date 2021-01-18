@@ -12,6 +12,6 @@ class TuplesVector {
     tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint64_t, uint64_t, sd_vector<>>>&, uint64_t);
   public:
     TuplesVector(tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint64_t, uint64_t, sd_vector<>>>&, uint64_t));
-    void push(tuple<uint64_t, uint64_t, sd_vector<>> element);
+    void push(tuple<uint64_t, uint64_t, sd_vector<>> *element);
     tuple<uint64_t, uint64_t, sd_vector<>>* getPredecessor(uint64_t value);
 };
