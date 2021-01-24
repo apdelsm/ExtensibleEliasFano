@@ -17,7 +17,7 @@ class ExtensibleEliasFano {
     uint64_t count = 0;
     uint64_t blocksCount = 0;
     T predecessorStructure;
-    char whereIsPredecessor(uint64_t element);
+    char whereIsPredecessor(uint64_t position);
     vector<tuple<uint64_t, uint64_t, sd_vector<>>*> blocks;
 
   public:
@@ -62,17 +62,15 @@ void ExtensibleEliasFano<T>::pushBit(uint64_t bit) {
 }
 
 template <class T>
-char ExtensibleEliasFano<T>::whereIsPredecessor(uint64_t element) {
-  if (bufferFill == 0 && buffer.back() == 0) {
-    return 'n';
-  } else if (buffer.back() == 0) {
-    if (buffer[0] < element) {
-      return 'b';
-    } else {
-      return 'n';
-    }
+char ExtensibleEliasFano<T>::whereIsPredecessor(uint64_t position) {
+  if (buffer[bufferFill] < position) {
+    return 'b';
   } else {
-    return 's';
+    if (blocksCount == 0) {
+      return 'n';
+    } else {
+      return 's';
+    }
   }
 }
 
