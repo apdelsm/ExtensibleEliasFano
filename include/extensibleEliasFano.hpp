@@ -104,7 +104,7 @@ uint64_t ExtensibleEliasFano<T>::rank1(uint64_t position) {
   } else if (predecessorPlace == 'b') {
     for (uint64_t i = 0; i < bufferFill; ++i) {
       if (buffer[i] > position) {
-        return blocksCount * buffer.size() + i - 1;
+        return blocksCount * buffer.size() + i;
       }
     }
     return blocksCount * buffer.size() + bufferFill;
