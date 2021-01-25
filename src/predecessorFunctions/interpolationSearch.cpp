@@ -13,7 +13,6 @@ tuple<uint64_t, uint64_t, sd_vector<>>* interpolationSearch(vector<tuple<uint64_
   uint64_t low = 0;
   uint64_t high = orderedVector.size() - 1;
   uint64_t mid;
-  int find = 0;
   if (element < get<1>(orderedVector[0])) {
     return NULL;
   }
