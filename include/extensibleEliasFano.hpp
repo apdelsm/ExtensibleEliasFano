@@ -111,7 +111,7 @@ uint64_t ExtensibleEliasFano<T>::rank1(uint64_t position) {
   } else {
     tuple<uint64_t, uint64_t, sd_vector<>>* predecessorBlock = predecessorStructure.getPredecessor(position);
     if (predecessorBlock) {
-      uint64_t relativePosition = min(position - get<1>(*predecessorBlock) + 1, get<2>(*predecessorBlock).size());
+      uint64_t relativePosition = position - get<1>(*predecessorBlock) + 1;
       uint64_t ones = sd_vector<>::rank_1_type(&get<2>(*predecessorBlock))(relativePosition);
       return get<0>(*predecessorBlock) * buffer.size() + ones;
     } else {
