@@ -23,4 +23,12 @@ tuple<uint64_t, uint64_t, sd_vector<>>* TuplesVector::getPredecessor(uint64_t va
   return (this -> predecessorFunction)(this -> tuplesVector, value);
 }
 
+uint64_t TuplesVector::size() {
+  uint64_t returnSize = 0;
+  returnSize += sizeof(vector<tuple<uint64_t, uint64_t, sd_vector<>>>);
+  returnSize += sizeof(tuple<uint64_t, uint64_t, sd_vector<>>) * tuplesVector.size();
+  returnSize += sizeof(predecessorFunction);
+  return returnSize;
+}
+
 #endif
