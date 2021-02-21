@@ -27,6 +27,7 @@ class ExtensibleEliasFano {
     void pushBit(uint64_t bit);
     int select1(uint64_t occurrence, uint64_t &result);
     uint64_t rank1(uint64_t position);
+    uint64_t size();
 };
 
 template <class T>
@@ -120,4 +121,18 @@ uint64_t ExtensibleEliasFano<T>::rank1(uint64_t position) {
   }
 }
 
+template <class T>
+uint64_t ExtensibleEliasFano<T>::size() {
+  uint64_t returnSize = 0;
+  returnSize += sizeof(vector<uint64_t>);
+  returnSize += sizeof(uint64_t) * buffer.size();
+  returnSize += sizeof(uint64_t) * 3;
+  returnSize += predecessorStructure.size();
+  returnSize += sizeof(vector<tuple<uint64_t, uint64_t, sd_vector<>>*>);
+  returnSize += sizeof(tuple<uint64_t, uint64_t, sd_vector<>>*) * blocks.size();
+  for (vector<tuple<uint64_t, uint64_t, sd_vector<>>*>::iterator it = blocks.begin(), end = blocks.end(); it != end; ++it) {
+    returnSize += size_in_bytes(get<2>(**it));
+  }
+  return returnSize;
+}
 #endif
