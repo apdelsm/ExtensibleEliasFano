@@ -66,7 +66,7 @@ void ExtensibleEliasFano<T>::pushBit(uint64_t bit) {
 
 template <class T>
 char ExtensibleEliasFano<T>::whereIsPredecessor(uint64_t position) {
-  if (buffer[0] < position && bufferFill != 0) {
+  if (buffer[0] <= position && bufferFill != 0) {
     return 'b';
   } else {
     if (blocksCount == 0) {
