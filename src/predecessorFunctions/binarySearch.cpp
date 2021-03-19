@@ -20,7 +20,7 @@ tuple<uint64_t, uint64_t, sd_vector<>>* binarySearch(vector<tuple<uint64_t, uint
     mid = (low + high) / 2;
     if (element < get<1>(orderedVector[mid])) {
       high = mid - 1;
-    } else if (element > get<1>(orderedVector[mid])) {
+    } else if (element > get<1>(orderedVector[mid]) && mid > low) {
       low = mid;
     } else {
       return &(orderedVector[mid]);
