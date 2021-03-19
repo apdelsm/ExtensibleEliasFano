@@ -24,7 +24,7 @@ class ExtensibleEliasFano {
   public:
     ExtensibleEliasFano(uint64_t bufferSize, T predecessorStructure);
     ~ExtensibleEliasFano();
-    void pushBit(uint64_t bit);
+    int pushBit(uint64_t bit);
     int select1(uint64_t occurrence, uint64_t &result);
     uint64_t rank1(uint64_t position);
     uint64_t size();
@@ -45,7 +45,7 @@ ExtensibleEliasFano<T>::~ExtensibleEliasFano() {
 }
 
 template <class T>
-void ExtensibleEliasFano<T>::pushBit(uint64_t bit) {
+int ExtensibleEliasFano<T>::pushBit(uint64_t bit) {
   if(bit) {
     (this->buffer)[bufferFill] = count;
     ++(this->bufferFill);
@@ -61,7 +61,8 @@ void ExtensibleEliasFano<T>::pushBit(uint64_t bit) {
       ++this->blocksCount;
     }
   }
-  count++;
+  ++count;
+  return count;
 }
 
 template <class T>
@@ -113,7 +114,7 @@ uint64_t ExtensibleEliasFano<T>::rank1(uint64_t position) {
     tuple<uint64_t, uint64_t, sd_vector<>>* predecessorBlock = predecessorStructure.getPredecessor(position);
     if (predecessorBlock) {
       uint64_t relativePosition = position - get<1>(*predecessorBlock) + 1;
-      uint64_t ones = sd_vector<>::rank_1_type(&get<2>(*predecessorBlock))(relativePosition);
+      uint64_t ones = sd_vector<>::rank_1_type(&get<2>(*predecessorBlock))(min(relativePosition, get<2>(*predecessorBlock).size()));
       return get<0>(*predecessorBlock) * buffer.size() + ones;
     } else {
       return 0;
