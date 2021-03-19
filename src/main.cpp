@@ -1,14 +1,253 @@
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <stdlib.h>
 #include <vector>
 
 #include <sdsl/bit_vectors.hpp>
 
-#include "../include/pairsVector.hpp"
-#include "../include/linearSearch.hpp"
+#include "../include/binarySearch.hpp"
 #include "../include/extensibleEliasFano.hpp"
+#include "../include/interpolationSearch.hpp"
+#include "../include/linearSearch.hpp"
+#include "../include/tuplesVector.hpp"
 
 using namespace std;
 using namespace sdsl;
 
+void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, uint64_t bit, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, bool clear=false);
+
 int main() {
+  const int testCases = 1;
+  const int bitsLimit = 1000000;
+  uint64_t bit;
+  vector<float> probabilities = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+  vector<uint64_t> bufferSizes = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
+  srand(2015735042);
+
+  for (vector<uint64_t>::iterator bufferIt = bufferSizes.begin(), bufferEnd = bufferSizes.end(); bufferIt != bufferEnd; ++bufferIt){
+    ExtensibleEliasFano<TuplesVector> *tupleLineal;
+    ExtensibleEliasFano<TuplesVector> *tupleInterpolation;
+    ExtensibleEliasFano<TuplesVector> *tupleBinary;    
+    
+    // Random bits
+    int randResult;
+    for(vector<float>::iterator probabilitieIt = probabilities.begin(), probabilitieEnd = probabilities.end(); probabilitieIt != probabilitieEnd; ++probabilitieIt) {
+      int probabilitie = (*probabilitieIt) * 10;
+      for (int test = 0; test < testCases; ++test) {
+
+        tupleLineal = new ExtensibleEliasFano<TuplesVector>((*bufferIt), linearSearch);
+        tupleInterpolation = new ExtensibleEliasFano<TuplesVector>((*bufferIt), interpolationSearch);
+        tupleBinary = new ExtensibleEliasFano<TuplesVector>((*bufferIt), binarySearch);
+
+        for (int bitCount = 0; bitCount < bitsLimit; ++bitCount) {
+
+          randResult = rand() % 10;
+          if (randResult < probabilitie) {
+            bit = 1;
+          } else {
+            bit = 0; 
+          }
+          manageBit("Random", *bufferIt, *probabilitieIt, 1, 1, test, bit, tupleLineal, tupleInterpolation, tupleBinary);
+        }
+
+        manageBit("Random", *bufferIt, *probabilitieIt, 1, 1, test, bit, tupleLineal, tupleInterpolation, tupleBinary, true);
+        delete tupleLineal;
+        delete tupleInterpolation;
+        delete tupleBinary;
+      }
+    }
+
+    // Runs
+    vector<int> zeros = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
+    vector<int> ones = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
+    int randZeros;
+    int randOnes;
+    int remainingBits;
+    int addOnesRun;
+
+    for (vector<int>::iterator zerosIt = zeros.begin(), zerosEnd = zeros.end(); zerosIt != zerosEnd; ++zerosIt) {
+      for (vector<int>::iterator onesIt = ones.begin(), onesEnd = ones.end(); onesIt != onesEnd; ++onesIt) {
+        for (vector<float>::iterator probabilitieIt = probabilities.begin(), probabilitieEnd = probabilities.end(); probabilitieIt != probabilitieEnd; ++probabilitieIt) {
+
+          int probabilitie = (*probabilitieIt) * 10;
+          remainingBits = bitsLimit;
+
+          for (int test = 0; test < testCases; ++test) {
+            tupleLineal = new ExtensibleEliasFano<TuplesVector>((*bufferIt), linearSearch);
+            tupleInterpolation = new ExtensibleEliasFano<TuplesVector>((*bufferIt), interpolationSearch);
+            tupleBinary = new ExtensibleEliasFano<TuplesVector>((*bufferIt), binarySearch);
+            while (remainingBits > 0) {
+
+              randZeros = rand() % (*zerosIt) + 1;
+              if (randZeros > remainingBits) {
+                randZeros = remainingBits - 1;
+              }
+              remainingBits -= randZeros + 1;
+              for (int zeroCount = 0; zeroCount < randZeros; ++zeroCount) {
+                bit = 0;
+                manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary);
+              }
+              bit = 1;
+              manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary);
+
+              addOnesRun = rand() % 10;
+              if (addOnesRun < probabilitie) {
+                randOnes = rand() % (*onesIt) + 1;
+              } else {
+                randOnes = 0;
+              }
+              if (randOnes > remainingBits) {
+                randOnes = remainingBits;
+              }
+              remainingBits -= randOnes;
+              for (int oneCount = 0; oneCount < randOnes; ++oneCount) {
+                bit = 1;
+                manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary);
+              }
+            }
+            manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, true);
+            delete tupleLineal;
+            delete tupleInterpolation;
+            delete tupleBinary;
+          }
+        }
+      }    
+    }
+  }
   return 0;
 }
+
+void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, uint64_t bit, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, bool clear) {
+  static uint64_t count = 0;
+  static uint64_t ones = 0;
+  static uint64_t selects = 0;
+  static uint64_t ranks = 0;
+
+  auto start = chrono::system_clock::now();
+  auto end = chrono::system_clock::now();
+  static chrono::duration<float, milli> tupleLinealInsertTime = start - start;
+  static chrono::duration<float, milli> tupleLinealSelectTime = start - start;
+  static chrono::duration<float, milli> tupleLinealRankTime = start - start;
+  static chrono::duration<float, milli> tupleInterpolationInsertTime = start - start;
+  static chrono::duration<float, milli> tupleInterpolationSelectTime = start - start;
+  static chrono::duration<float, milli> tupleInterpolationRankTime = start - start;
+  static chrono::duration<float, milli> tupleBinaryInsertTime = start - start;
+  static chrono::duration<float, milli> tupleBinarySelectTime = start - start;
+  static chrono::duration<float, milli> tupleBinaryRankTime = start - start;
+
+  if (clear) {
+    count = 0;
+    ones = 0;
+    selects = 0;
+    ranks = 0;
+    tupleLinealInsertTime = start - start;
+    tupleLinealSelectTime = start - start;
+    tupleLinealRankTime = start - start;
+    tupleInterpolationInsertTime = start - start;
+    tupleInterpolationSelectTime = start - start;
+    tupleInterpolationRankTime = start - start;
+    tupleBinaryInsertTime = start - start;
+    tupleBinarySelectTime = start - start;
+    tupleBinaryRankTime = start - start;
+  } else {
+
+    int aux;
+    uint64_t aux2;
+
+    count += 1;
+
+    ones += bit;
+    cout << "insert" << endl;
+    start = chrono::system_clock::now();
+    aux = tupleLineal -> pushBit(bit);
+    end = chrono::system_clock::now();
+    tupleLinealInsertTime += end - start;
+    cout << aux << endl;
+
+    start = chrono::system_clock::now();
+    aux = tupleInterpolation -> pushBit(bit);
+    end = chrono::system_clock::now();
+    tupleInterpolationInsertTime += end - start;
+    cout << aux << endl;
+
+    start = chrono::system_clock::now();
+    aux = tupleBinary -> pushBit(bit);
+    end = chrono::system_clock::now();
+    tupleBinaryInsertTime += end - start;
+    cout << aux << endl;
+
+    int randResult = rand() % 10;
+    if (randResult < 1) {
+      randResult = rand() % 2;
+
+      if (randResult == 0) {
+        selects += 1;
+        uint64_t oneOccurrence = rand() % (ones + 1);
+        cout << "select: " << oneOccurrence << endl;
+        start = chrono::system_clock::now();
+        aux = tupleLineal -> select1(oneOccurrence, aux2);
+        end = chrono::system_clock::now();
+        tupleLinealSelectTime += end - start;
+        cout << aux << endl;
+
+        start = chrono::system_clock::now();
+        aux = tupleInterpolation -> select1(oneOccurrence, aux2);
+        end = chrono::system_clock::now();
+        tupleInterpolationSelectTime += end - start;
+        cout << aux << endl;
+
+        start = chrono::system_clock::now();
+        aux = tupleBinary -> select1(oneOccurrence, aux2);
+        end = chrono::system_clock::now();
+        tupleBinarySelectTime += end - start;
+        cout << aux << endl;
+
+      } else {
+        ranks += 1;
+        uint64_t rankPosition = rand() % count;
+        cout << "rank: " << rankPosition << endl;
+        start = chrono::system_clock::now();
+        aux2 = tupleLineal -> rank1(rankPosition);
+        end = chrono::system_clock::now();
+        tupleLinealRankTime += end - start;
+        cout << aux2 << endl;
+
+        start = chrono::system_clock::now();
+        aux2 = tupleInterpolation -> rank1(rankPosition);
+        end = chrono::system_clock::now();
+        tupleInterpolationRankTime += end - start;
+        cout << aux2 << endl;
+
+        start = chrono::system_clock::now();
+        aux2 = tupleBinary -> rank1(rankPosition);
+        end = chrono::system_clock::now();
+        tupleBinaryRankTime += end - start;
+        cout << aux2 << endl;
+      }
+    }
+
+    if (count % 100 == 0) {
+      cout << "register" << endl;
+      static bool header = true;
+      ofstream results;
+      if (header) {
+        results.open("results.csv", ofstream::trunc);
+        results << "TestType;BufferSize;Probabilitie;ZerosRunSize;OnesRunSize;TestCount;Structure;Bits;Ones;Size;Selects;Ranks;Insert Time;Random Select Time;Random Rank Time" << endl;;
+        header = false;
+        results.close();
+      }
+      results.open("results.csv", ofstream::app);
+      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
+              << "Tuples Lineal;" << count << ";" << ones << ";" << tupleLineal -> size() << ";" << selects << ";" << ranks << ";"
+              << tupleLinealInsertTime.count() << ";" << tupleLinealSelectTime.count() << ";" << tupleLinealRankTime.count() << endl;
+      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
+              << "Tuples Interpolation;" << count << ";" << ones << ";" << tupleInterpolation -> size() << ";" << selects << ";" << ranks << ";"
+              << tupleInterpolationInsertTime.count() << ";" << tupleInterpolationSelectTime.count() << ";" << tupleInterpolationRankTime.count() << endl;
+      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
+              << "Tuples Binary;" << count << ";" << ones << ";" << tupleBinary -> size() << ";" << selects << ";" << ranks << ";"
+              << tupleBinaryInsertTime.count() << ";" << tupleBinarySelectTime.count() << ";" << tupleBinaryRankTime.count() << endl;
+      results.close();
+    }
+  }
+};
