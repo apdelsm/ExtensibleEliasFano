@@ -15,6 +15,8 @@ TuplesVector::TuplesVector(tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorF
   this -> predecessorFunction = predecessorFunction;
 }
 
+TuplesVector::~TuplesVector(){}
+
 void TuplesVector::push(tuple<uint64_t, uint64_t, sd_vector<>> *element) {
   this -> tuplesVector.push_back(*element);
 }
