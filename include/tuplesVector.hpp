@@ -15,5 +15,5 @@ class TuplesVector {
     ~TuplesVector();
     void push(tuple<uint64_t, uint64_t, sd_vector<>> *element);
     tuple<uint64_t, uint64_t, sd_vector<>>* getPredecessor(uint64_t value);
-    uint64_t size();
+    uint64_t eefsize();
 };
