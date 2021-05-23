@@ -17,12 +17,13 @@ class ExtensibleEliasFano {
     uint64_t bufferFill = 0;
     uint64_t count = 0;
     uint64_t blocksCount = 0;
-    T predecessorStructure;
+    T *predecessorStructure;
+    vector<tuple<uint64_t, uint64_t, sd_vector<>>*> blocks; //#block, key, vector
     char whereIsPredecessor(uint64_t position);
-    vector<tuple<uint64_t, uint64_t, sd_vector<>>*> blocks;
 
   public:
-    ExtensibleEliasFano(uint64_t bufferSize, T predecessorStructure);
+    ExtensibleEliasFano(uint64_t bufferSize, tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint64_t, uint64_t, sd_vector<>>*>&, uint64_t));
+    ExtensibleEliasFano(uint64_t bufferSize);
     ~ExtensibleEliasFano();
     int pushBit(uint64_t bit);
     int select1(uint64_t occurrence, uint64_t &result);
@@ -31,10 +32,15 @@ class ExtensibleEliasFano {
 };
 
 template <class T>
-ExtensibleEliasFano<T>::ExtensibleEliasFano(uint64_t bufferSize, T predecessorStructure)
-  : predecessorStructure(predecessorStructure)
-{
+ExtensibleEliasFano<T>::ExtensibleEliasFano(uint64_t bufferSize, tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint64_t, uint64_t, sd_vector<>>*>&, uint64_t)) {
   this->buffer = vector<uint64_t>(bufferSize, 0);
+  predecessorStructure = new T(predecessorFunction);
+}
+
+template <class T>
+ExtensibleEliasFano<T>::ExtensibleEliasFano(uint64_t bufferSize) {
+  this->buffer = vector<uint64_t>(bufferSize, 0);
+  predecessorStructure = new T();
 }
 
 template <class T>
@@ -42,6 +48,7 @@ ExtensibleEliasFano<T>::~ExtensibleEliasFano() {
   for (vector<tuple<uint64_t, uint64_t, sd_vector<>>*>::iterator it = blocks.begin(), end = blocks.end(); it != end; ++it) {
     delete *it;
   }
+  delete predecessorStructure;
 }
 
 template <class T>
@@ -57,7 +64,7 @@ int ExtensibleEliasFano<T>::pushBit(uint64_t bit) {
       }
       tuple<uint64_t, uint64_t, sd_vector<>>* bufferSDVector = new tuple<uint64_t, uint64_t, sd_vector<>>(this->blocksCount, first, sd_vector<>((this->buffer).begin(), (this->buffer).end()));
       blocks.push_back(bufferSDVector);
-      this->predecessorStructure.push(bufferSDVector);
+      this->predecessorStructure->push(bufferSDVector);
       ++this->blocksCount;
     }
   }
@@ -111,7 +118,7 @@ uint64_t ExtensibleEliasFano<T>::rank1(uint64_t position) {
     vector<uint64_t>::iterator low = lower_bound(buffer.begin(), buffer.begin() + bufferFill, position, lowerBoundCompare);
     return blocksCount * buffer.size() + (low - buffer.begin());
   } else {
-    tuple<uint64_t, uint64_t, sd_vector<>>* predecessorBlock = predecessorStructure.getPredecessor(position);
+    tuple<uint64_t, uint64_t, sd_vector<>>* predecessorBlock = (tuple<uint64_t, uint64_t, sd_vector<>>*)predecessorStructure->getPredecessor(position);
     if (predecessorBlock) {
       uint64_t relativePosition = position - get<1>(*predecessorBlock) + 1;
       uint64_t ones = sd_vector<>::rank_1_type(&get<2>(*predecessorBlock))(min(relativePosition, get<2>(*predecessorBlock).size()));
@@ -128,9 +135,10 @@ uint64_t ExtensibleEliasFano<T>::size() {
   returnSize += sizeof(vector<uint64_t>);
   returnSize += sizeof(uint64_t) * buffer.size();
   returnSize += sizeof(uint64_t) * 3;
-  returnSize += predecessorStructure.size();
+  returnSize += predecessorStructure->eefsize();
   returnSize += sizeof(vector<tuple<uint64_t, uint64_t, sd_vector<>>*>);
   returnSize += sizeof(tuple<uint64_t, uint64_t, sd_vector<>>*) * blocks.size();
+  returnSize += sizeof(tuple<uint64_t, uint64_t, sd_vector<>>) * blocks.size();
   for (vector<tuple<uint64_t, uint64_t, sd_vector<>>*>::iterator it = blocks.begin(), end = blocks.end(); it != end; ++it) {
     returnSize += size_in_bytes(get<2>(**it));
   }
