@@ -21,6 +21,9 @@ void RedBlackTree::push(tuple<uint64_t, uint64_t, sd_vector<>> *element) {
 
 tuple<uint64_t, uint64_t, sd_vector<>>* RedBlackTree::getPredecessor(uint64_t value) {
   map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>::iterator lowerResult = redBlackTree.lower_bound(value);
+  if (lowerResult == redBlackTree.begin() && lowerResult -> first > value) {
+    return NULL;
+  }
   if (lowerResult -> first > value || lowerResult == redBlackTree.end()) {
     --lowerResult;
   }

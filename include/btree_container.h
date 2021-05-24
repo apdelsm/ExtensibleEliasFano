@@ -78,6 +78,9 @@ class btree_container {
   }
   void * getPredecessor(const key_type &key) {
     iterator lower_result = tree_.lower_bound(key);
+    if (lower_result == tree_.begin() && lower_result.key() > key) {
+      return NULL;
+    }
     if (lower_result.key() > key || lower_result == tree_.end()) {
       --lower_result;
     }
