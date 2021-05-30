@@ -489,20 +489,9 @@ public:
         return _Res(__res.second, false);
 	}
     std::pair<iterator, bool>
-    push(const value_type& val)
-	{
-    	remove_barrier();
-    	typedef std::pair<iterator, bool> _Res;
-        std::pair<iterator, iterator> __res = get_insert_pos(val.first);
-        
-        if (__res.first != 0){
-        	_Res result = _Res(insert_impl(__res.second.node_, val), true);
-        	add_barrier();
-        	return result;
-        }
-        add_barrier();
-        return _Res(__res.second, false);
-	}
+    push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>>* val) {
+      return this -> insert(std::make_pair(std::get<1>(*val), val));
+    }
 	
 	std::pair<iterator, bool>
 	emplace(const value_type& val){
