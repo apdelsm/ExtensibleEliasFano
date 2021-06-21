@@ -1,6 +1,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <math.h>
 #include <stdlib.h>
 #include <vector>
 
@@ -13,18 +14,20 @@
 #include "../include/linearSearch.hpp"
 #include "../include/redBlackTree.hpp"
 #include "../include/tuplesVector.hpp"
+#include "../include/x-fast.h"
 
 using namespace std;
 using namespace sdsl;
 
-void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, uint64_t bit, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, bool clear=false);
+void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, uint64_t bit, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, bool clear=false);
 
 int main() {
   const int testCases = 1;
   const int bitsLimit = 100;
+  const uint64_t uExp = ceil(log2(bitsLimit));
   uint64_t bit;
-  vector<float> probabilities = {0.1/*, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9*/};
-  vector<uint64_t> bufferSizes = {64/*, 128, 256, 512, 1024, 2048, 4096, 8192, 16384*/};
+  vector<float> probabilities = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+  vector<uint64_t> bufferSizes = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
   srand(2015735042);
 
   for (vector<uint64_t>::iterator bufferIt = bufferSizes.begin(), bufferEnd = bufferSizes.end(); bufferIt != bufferEnd; ++bufferIt){
@@ -34,6 +37,7 @@ int main() {
     ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap;
     ExtensibleEliasFano<RedBlackTree> *redBlackTree;
     ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap;
+    ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap;
     
     // Random bits
     int randResult;
@@ -47,6 +51,7 @@ int main() {
         btreeMap = new ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(*bufferIt);
         redBlackTree = new ExtensibleEliasFano<RedBlackTree>(*bufferIt);
         avlMap = new ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(*bufferIt);
+        xFastMap = new ExtensibleEliasFano<x_fast_map<uint64_t>>(*bufferIt, uExp);
 
         for (int bitCount = 0; bitCount < bitsLimit; ++bitCount) {
 
@@ -56,22 +61,23 @@ int main() {
           } else {
             bit = 0; 
           }
-          manageBit("Random", *bufferIt, *probabilitieIt, 1, 1, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap);
+          manageBit("Random", *bufferIt, *probabilitieIt, 1, 1, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap);
         }
 
-        manageBit("Random", *bufferIt, *probabilitieIt, 1, 1, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, true);
+        manageBit("Random", *bufferIt, *probabilitieIt, 1, 1, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, true);
         delete tupleLineal;
         delete tupleInterpolation;
         delete tupleBinary;
         delete btreeMap;
         delete redBlackTree;
         delete avlMap;
+        delete xFastMap;
       }
     }
 
     // Runs
-    vector<int> zeros = {64/*, 128, 256, 512, 1024, 2048, 4096, 8192, 16384*/};
-    vector<int> ones = {64/*, 128, 256, 512, 1024, 2048, 4096, 8192, 16384*/};
+    vector<int> zeros = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
+    vector<int> ones = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
     int randZeros;
     int randOnes;
     int remainingBits;
@@ -91,6 +97,7 @@ int main() {
             btreeMap = new ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(*bufferIt);
             redBlackTree = new ExtensibleEliasFano<RedBlackTree>(*bufferIt);
             avlMap = new ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(*bufferIt);
+            xFastMap = new ExtensibleEliasFano<x_fast_map<uint64_t>>(*bufferIt, uExp);
 
             while (remainingBits > 0) {
 
@@ -101,10 +108,10 @@ int main() {
               remainingBits -= randZeros + 1;
               for (int zeroCount = 0; zeroCount < randZeros; ++zeroCount) {
                 bit = 0;
-                manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap);
+                manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap);
               }
               bit = 1;
-              manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap);
+              manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap);
 
               addOnesRun = rand() % 10;
               if (addOnesRun < probabilitie) {
@@ -118,16 +125,17 @@ int main() {
               remainingBits -= randOnes;
               for (int oneCount = 0; oneCount < randOnes; ++oneCount) {
                 bit = 1;
-                manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap);
+                manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap);
               }
             }
-            manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, true);
+            manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, true);
             delete tupleLineal;
             delete tupleInterpolation;
             delete tupleBinary;
             delete btreeMap;
             delete redBlackTree;
             delete avlMap;
+            delete xFastMap;
           }
         }
       }    
@@ -136,7 +144,7 @@ int main() {
   return 0;
 }
 
-void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, uint64_t bit, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, bool clear) {
+void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, uint64_t bit, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, bool clear) {
   static uint64_t count = 0;
   static uint64_t ones = 0;
   static uint64_t selects = 0;
@@ -161,7 +169,10 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
   static chrono::duration<float, milli> redBlackTreeRankTime = start - start;
   static chrono::duration<float, milli> avlMapInsertTime = start - start;
   static chrono::duration<float, milli> avlMapSelectTime = start - start;
-  static chrono::duration<float, milli> avlMapRankTime = start - start;  
+  static chrono::duration<float, milli> avlMapRankTime = start - start;
+  static chrono::duration<float, milli> xFastMapInsertTime = start - start;
+  static chrono::duration<float, milli> xFastMapSelectTime = start - start;
+  static chrono::duration<float, milli> xFastMapRankTime = start - start;
 
   if (clear) {
     count = 0;
@@ -186,6 +197,9 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
     avlMapInsertTime = start - start;
     avlMapSelectTime = start - start;
     avlMapRankTime = start - start;
+    xFastMapInsertTime = start - start;
+    xFastMapSelectTime = start - start;
+    xFastMapRankTime = start - start;
   } else {
 
     int aux;
@@ -229,6 +243,12 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
     aux = avlMap -> pushBit(bit);
     end = chrono::system_clock::now();
     avlMapInsertTime += end - start;
+    cout << aux << endl;
+
+    start = chrono::system_clock::now();
+    aux = xFastMap -> pushBit(bit);
+    end = chrono::system_clock::now();
+    xFastMapInsertTime += end - start;
     cout << aux << endl;
 
     int randResult = rand() % 10;
@@ -275,6 +295,12 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
         avlMapSelectTime += end - start;
         cout << aux << endl;
 
+        start = chrono::system_clock::now();
+        aux = xFastMap -> select1(oneOccurrence, aux2);
+        end = chrono::system_clock::now();
+        xFastMapSelectTime += end - start;
+        cout << aux << endl;
+
       } else {
         ranks += 1;
         uint64_t rankPosition = rand() % count;
@@ -314,6 +340,12 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
         end = chrono::system_clock::now();
         avlMapRankTime += end - start;
         cout << aux << endl;
+
+        start = chrono::system_clock::now();
+        aux = xFastMap -> rank1(rankPosition);
+        end = chrono::system_clock::now();
+        xFastMapRankTime += end - start;
+        cout << aux << endl;
       }
     }
 
@@ -346,6 +378,9 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
       results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
               << "Avl Map;" << count << ";" << ones << ";" << avlMap -> size() << ";" << selects << ";" << ranks << ";"
               << avlMapInsertTime.count() << ";" << avlMapSelectTime.count() << ";" << avlMapRankTime.count() << endl;
+      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
+              << "X-fast-trie;" << count << ";" << ones << ";" << xFastMap -> size() << ";" << selects << ";" << ranks << ";"
+              << xFastMapInsertTime.count() << ";" << xFastMapSelectTime.count() << ";" << xFastMapRankTime.count() << endl;
       results.close();
     }
   }
