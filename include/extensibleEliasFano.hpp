@@ -24,6 +24,7 @@ class ExtensibleEliasFano {
   public:
     ExtensibleEliasFano(uint64_t bufferSize, tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint64_t, uint64_t, sd_vector<>>*>&, uint64_t));
     ExtensibleEliasFano(uint64_t bufferSize);
+    ExtensibleEliasFano(uint64_t bufferSize, uint64_t u_exp);
     ~ExtensibleEliasFano();
     int pushBit(uint64_t bit);
     int select1(uint64_t occurrence, uint64_t &result);
@@ -41,6 +42,12 @@ template <class T>
 ExtensibleEliasFano<T>::ExtensibleEliasFano(uint64_t bufferSize) {
   this->buffer = vector<uint64_t>(bufferSize, 0);
   predecessorStructure = new T();
+}
+
+template <class T>
+ExtensibleEliasFano<T>::ExtensibleEliasFano(uint64_t bufferSize, uint64_t u_exp) {
+  this->buffer = vector<uint64_t>(bufferSize, 0);
+  predecessorStructure = new T(u_exp);
 }
 
 template <class T>
