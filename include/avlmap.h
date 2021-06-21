@@ -750,7 +750,7 @@ public:
       if (lower_result == this->begin() && lower_result -> first > k) {
         return NULL;
       }
-      if (lower_result -> first > k || lower_result == this->end()) {
+      if (lower_result == this->end() || lower_result -> first > k) {
         --lower_result;
       }
       return (void*)((*lower_result).second);
