@@ -14,7 +14,7 @@
 #include "../include/linearSearch.hpp"
 #include "../include/redBlackTree.hpp"
 #include "../include/tuplesVector.hpp"
-#include "../include/x-fast.h"
+#include "../include/x-fast-map.h"
 
 using namespace std;
 using namespace sdsl;
