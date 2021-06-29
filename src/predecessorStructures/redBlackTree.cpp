@@ -24,7 +24,7 @@ tuple<uint64_t, uint64_t, sd_vector<>>* RedBlackTree::getPredecessor(uint64_t va
   if (lowerResult == redBlackTree.begin() && lowerResult -> first > value) {
     return NULL;
   }
-  if (lowerResult -> first > value || lowerResult == redBlackTree.end()) {
+  if (lowerResult == redBlackTree.end() || lowerResult -> first > value) {
     --lowerResult;
   }
   return lowerResult -> second;
