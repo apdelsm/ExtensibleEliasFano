@@ -112,7 +112,7 @@ class x_fast_map {
         next->prev = curr;
       }
 
-      for (int i = 1; i <= u_exp; i++) {
+      for (uint64_t i = 1; i <= u_exp; i++) {
         auto prefix = key >> (u_exp - i);
 
         auto parent = levels[i - 1][prefix >> 1];
