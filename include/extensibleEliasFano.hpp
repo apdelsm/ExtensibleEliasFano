@@ -112,17 +112,13 @@ int ExtensibleEliasFano<T>::select1(uint64_t occurrence, uint64_t &result) {
   return 0;
 }
 
-bool lowerBoundCompare(int a, int b) {
-  return a <= b;
-}
-
 template <class T>
 uint64_t ExtensibleEliasFano<T>::rank1(uint64_t position) {
   char predecessorPlace = whereIsPredecessor(position);
   if (predecessorPlace == 'n') {
     return 0;
   } else if (predecessorPlace == 'b') {
-    vector<uint64_t>::iterator low = lower_bound(buffer.begin(), buffer.begin() + bufferFill, position, lowerBoundCompare);
+    vector<uint64_t>::iterator low = upper_bound(buffer.begin(), buffer.begin() + bufferFill, position);
     return blocksCount * buffer.size() + (low - buffer.begin());
   } else {
     tuple<uint64_t, uint64_t, sd_vector<>>* predecessorBlock = (tuple<uint64_t, uint64_t, sd_vector<>>*)predecessorStructure->getPredecessor(position);
