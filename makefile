@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -O3 -Wall -DNDEBUG
+CXXFLAGS = -std=c++14 -O3 -Wall -DNDEBUG
 BIN = bin
 SRC = $(shell find ./src -name "*.cpp")
 LDLIBS = -lsdsl -ldivsufsort -ldivsufsort64
