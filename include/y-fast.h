@@ -29,11 +29,10 @@ class y_fast {
 
     void insert(T key, void *value) {
       auto repr = top.pred(key);
-      if (bottom[repr].size() > u_exp) {
+      if (!bottom.count(repr) || bottom[repr].size() > u_exp) {
         top.insert(key);
         repr = key;
       }
-
       bottom[repr].insert(std::make_pair(key, value));
     }
 
