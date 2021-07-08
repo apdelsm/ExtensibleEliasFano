@@ -24,6 +24,7 @@ struct x_fast_node {
     key = k;
     value = v;
     leaf = _leaf;
+    prev = next = NULL;
   }
 };
 

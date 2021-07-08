@@ -16,7 +16,9 @@ struct xnode {
   T key;
   bool leaf;
 
-  xnode(T k = 0, bool _leaf = false) : key(k), leaf(_leaf) {}
+  xnode(T k = 0, bool _leaf = false) : key(k), leaf(_leaf) {
+    prev = next = NULL;
+  }
 };
 
 template <typename T>
