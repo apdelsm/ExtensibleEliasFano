@@ -476,17 +476,17 @@ public:
     std::pair<iterator, bool>
     insert(const value_type& val)
 	{
-    	remove_barrier();
-    	typedef std::pair<iterator, bool> _Res;
-        std::pair<iterator, iterator> __res = get_insert_pos(val.first);
-        
-        if (__res.first != 0){
-        	_Res result = _Res(insert_impl(__res.second.node_, val), true);
-        	add_barrier();
-        	return result;
-        }
-        add_barrier();
-        return _Res(__res.second, false);
+    remove_barrier();
+    typedef std::pair<iterator, bool> _Res;
+    std::pair<iterator, iterator> __res = get_insert_pos(val.first);
+    
+    if (__res.first != 0){
+      _Res result = _Res(insert_impl(__res.second.node_, val), true);
+      add_barrier();
+      return result;
+    }
+    add_barrier();
+    return _Res(__res.second, false);
 	}
     std::pair<iterator, bool>
     push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>>* val) {
@@ -746,14 +746,26 @@ public:
     }
 
     void * getPredecessor (const key_type& k) {
-      iterator lower_result = this->lower_bound(k);
-      if (lower_result == this->begin() && lower_result -> first > k) {
+      if (this->begin()->first > k) {
         return NULL;
       }
-      if (lower_result == this->end() || lower_result -> first > k) {
-        --lower_result;
+      node *x = root_;
+      node *y = end().node_;
+      key_type predValue = 0;
+      bool first = true;
+      while (x != 0 && x != left_barrier && x != right_barrier) {
+        if (x->value->first <= k) {
+          if (first || predValue < x->value->first) {
+            first = false;
+            predValue = x->value->first;
+            y = x;
+            x = x->right;
+          }
+        } else {
+          x = x->left;
+        }
       }
-      return (void*)((*lower_result).second);
+      return (void *)(y->value->second);
     }
 
     size_type eefsize() {
