@@ -104,16 +104,19 @@ class v_eb {
   T pred(T key) {
     if (key < min) return u;
     if (u == 2 && max > key) return min;
-    if (key >= max || u == 2) return max;
+    if (key > max || u == 2) return max;
 
     auto high = get_high(key);
     auto low = get_low(key);
 
-    if (low >= buckets[high].min) {
+    if (low > buckets[high].min) {
       return (high << u_exp_low) + buckets[high].pred(low);
     }
 
     auto prev_high = non_empty_high->pred(high);
+    if (prev_high == non_empty_high -> u) {
+      return min;
+    }
     return (prev_high << u_exp_low) + buckets[prev_high].max;
   }
 
@@ -122,7 +125,7 @@ class v_eb {
   }
 
   void * getPredecessor(T key) {
-    if (key < min) return nullptr;
+    if (key < min) return NULL;
     if (u == 2 && max > key) return minValue;
     if (key >= max || u == 2) return maxValue;
 
@@ -133,7 +136,10 @@ class v_eb {
       return buckets[high].getPredecessor(low);
     }
 
-    auto prev_high = non_empty_high->succ(high);
+    auto prev_high = non_empty_high->pred(high);
+    if (prev_high == non_empty_high -> u) {
+      return minValue;
+    }
     return buckets[prev_high].maxValue;
   }
 
