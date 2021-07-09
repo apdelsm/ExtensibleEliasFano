@@ -103,7 +103,7 @@ class v_eb {
 
   T pred(T key) {
     if (key <= min) return u;
-    if (u == 2 && max > key) return min;
+    if (u == 2 && max >= key) return min;
     if (key > max || u == 2) return max;
 
     auto high = get_high(key);
@@ -112,7 +112,7 @@ class v_eb {
     if (low > buckets[high].min) {
       return (high << u_exp_low) + buckets[high].pred(low);
     }
-    
+
     auto prev_high = non_empty_high->pred(high);
     if (prev_high == non_empty_high -> u) {
       return min;
