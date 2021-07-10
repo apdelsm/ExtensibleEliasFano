@@ -17,10 +17,10 @@ def operation(ones, writedBits, testFile):
     testFile.write(f'{retList[1]}{retList[2]}{retList[1]}')
 
 testCases = 1
-bitLimit = 300
+bitLimit = 100000000
 probabilities = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-zeros = [64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]
-ones = [64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]
+zeros = [64, 128, 256, 512, 1024]
+ones = [64, 128, 256, 512, 1024]
 
 random.seed(2015735042)
 
@@ -40,7 +40,7 @@ for test in range(testCases):
       testFile.write(f'{bit}')
       operation(onesCount, bitPos, testFile)
     testFile.close()
-'''
+
 #randomRuns
 for test in range(testCases):
   for maxZeros in zeros:
@@ -127,4 +127,3 @@ for test in range(testCases):
             onesCount += 1
             operation(onesCount, bitsCount, testFile)
         testFile.close()
-'''
