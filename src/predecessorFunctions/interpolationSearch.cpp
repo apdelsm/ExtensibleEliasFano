@@ -18,18 +18,16 @@ tuple<uint64_t, uint64_t, sd_vector<>>* interpolationSearch(vector<tuple<uint64_
   }
   while(low != high && low < high - 1) {
     mid = low + ((element - get<1>(*(orderedVector[low]))) * (high - low) / (get<1>(*(orderedVector[high])) - get<1>(*(orderedVector[low]))));
+    if (mid == low) {
+      ++mid;
+    }
     if (mid > high) {
       mid = high;
     }
     if (element < get<1>(*(orderedVector[mid]))) {
       high = mid - 1;
-    } else if (element > get<1>(*(orderedVector[mid])) && mid > low) {
-      if (mid < orderedVector.size() - 1 && element > get<1>(*(orderedVector[mid + 1]))) {
-        mid += 1;
-      }
-      low = mid;
     } else {
-      return orderedVector[mid];
+      low = mid;
     }
   }
   if (element < get<1>(*(orderedVector[high]))) {
