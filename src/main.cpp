@@ -27,13 +27,14 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
 void runTest(string testFilePath, uint64_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test);
 int main() {
 
-  vector<uint64_t> bufferSizes = {64/*, 128, 256, 512, 1024, 2048, 4096, 8192, 16384*/};
+  vector<uint64_t> bufferSizes = {64/*, 128, 256, 512, 1024, 2048*/};
 
   for (vector<uint64_t>::iterator bufferIt = bufferSizes.begin(), bufferEnd = bufferSizes.end(); bufferIt != bufferEnd; ++bufferIt){
     
     // Random bits
+
     string path = "./tests/randomBits/";
-    for (const auto & entry : filesystem::directory_iterator(path)){
+    for (const auto & entry : filesystem::directory_iterator(path)) {
       string filePath = entry.path();
       string filename = filePath.substr(filePath.find_last_of("/") + 1);
       float prob = (float)stoi(filename.substr(1,3)) / 100;
@@ -42,76 +43,45 @@ int main() {
       runTest(filePath, *bufferIt, "Random", prob, 1, 1, test);
     }
 
+    //runTest("./tests/randomBits/p60t0.txt", *bufferIt, "Random", 0.6, 1, 1, 0);
+
     // Random Runs
-    /*
-    vector<int> zeros = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
-    vector<int> ones = {64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384};
-    int randZeros;
-    int randOnes;
-    int remainingBits;
-    int addOnesRun;
 
-    for (vector<int>::iterator zerosIt = zeros.begin(), zerosEnd = zeros.end(); zerosIt != zerosEnd; ++zerosIt) {
-      for (vector<int>::iterator onesIt = ones.begin(), onesEnd = ones.end(); onesIt != onesEnd; ++onesIt) {
-        for (vector<float>::iterator probabilitieIt = probabilities.begin(), probabilitieEnd = probabilities.end(); probabilitieIt != probabilitieEnd; ++probabilitieIt) {
+    path = "./tests/randomRuns/";
+    for (const auto & entry : filesystem::directory_iterator(path)) {
+      string filePath = entry.path();
+      string filename = filePath.substr(filePath.find_last_of("/") + 1);
+      int zPos = filename.find('z');
+      int oPos = filename.find('o');
+      int pPos = filename.find('p');
+      int zeros = stoi(filename.substr(zPos + 1, oPos));
+      int ones = stoi(filename.substr(oPos + 1, pPos));
+      float prob = (float)stoi(filename.substr(pPos + 1, pPos + 3)) / 100;
+      int test = stoi(filename.substr(pPos + 4, filename.find('.')));
+      cout << filePath << endl;
+      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test);
+    }
+    
+    //runTest("./tests/randomRuns/z1024o256p60t0.txt", *bufferIt, "Random Runs", 0.4, 1024, 16384, 0);
+    
+    // Poisson Runs
+    path = "./tests/poissonRuns/";
+    for (const auto & entry : filesystem::directory_iterator(path)) {
+      string filePath = entry.path();
+      string filename = filePath.substr(filePath.find_last_of("/") + 1);
+      int zPos = filename.find('z');
+      int oPos = filename.find('o');
+      int pPos = filename.find('p');
+      int zeros = stoi(filename.substr(zPos + 1, oPos));
+      int ones = stoi(filename.substr(oPos + 1, pPos));
+      float prob = (float)stoi(filename.substr(pPos + 1, pPos + 3)) / 100;
+      int test = stoi(filename.substr(pPos + 4, filename.find('.')));
+      cout << filePath << endl;
+      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test);
+    }
 
-          int probabilitie = (*probabilitieIt) * 10;
-          remainingBits = bitsLimit;
-
-          for (int test = 0; test < testCases; ++test) {
-            tupleLineal = new ExtensibleEliasFano<TuplesVector>((*bufferIt), linearSearch);
-            tupleInterpolation = new ExtensibleEliasFano<TuplesVector>((*bufferIt), interpolationSearch);
-            tupleBinary = new ExtensibleEliasFano<TuplesVector>((*bufferIt), binarySearch);
-            btreeMap = new ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(*bufferIt);
-            redBlackTree = new ExtensibleEliasFano<RedBlackTree>(*bufferIt);
-            avlMap = new ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(*bufferIt);
-            xFastMap = new ExtensibleEliasFano<x_fast_map<uint64_t>>(*bufferIt, uExp);
-            yFastMap = new ExtensibleEliasFano<y_fast<uint64_t>>(*bufferIt, uExp);
-            vEBMap = new ExtensibleEliasFano<v_eb<uint64_t>>(*bufferIt, uExp);
-
-            while (remainingBits > 0) {
-
-              randZeros = rand() % (*zerosIt) + 1;
-              if (randZeros > remainingBits) {
-                randZeros = remainingBits - 1;
-              }
-              remainingBits -= randZeros + 1;
-              for (int zeroCount = 0; zeroCount < randZeros; ++zeroCount) {
-                bit = 0;
-                manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, vEBMap);
-              }
-              bit = 1;
-              manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, vEBMap);
-
-              addOnesRun = rand() % 10;
-              if (addOnesRun < probabilitie) {
-                randOnes = rand() % (*onesIt) + 1;
-              } else {
-                randOnes = 0;
-              }
-              if (randOnes > remainingBits) {
-                randOnes = remainingBits;
-              }
-              remainingBits -= randOnes;
-              for (int oneCount = 0; oneCount < randOnes; ++oneCount) {
-                bit = 1;
-                manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, vEBMap);
-              }
-            }
-            manageBit("Run", *bufferIt, *probabilitieIt, *zerosIt, *onesIt, test, bit, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, vEBMap, true);
-            delete tupleLineal;
-            delete tupleInterpolation;
-            delete tupleBinary;
-            delete btreeMap;
-            delete redBlackTree;
-            delete avlMap;
-            delete xFastMap;
-            delete yFastMap;
-            delete vEBMap;
-          }
-        }
-      }    
-    }*/
+    //runTest("./tests/randomRuns/z1024o256p60t0.txt", *bufferIt, "Random Runs", 0.4, 1024, 16384, 0);
+    
   }
   return 0;
 }
