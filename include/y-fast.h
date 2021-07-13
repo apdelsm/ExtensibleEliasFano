@@ -36,12 +36,12 @@ class y_fast {
       bottom[repr].insert(std::make_pair(key, value));
     }
 
-    void push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>>* element) {
-      this -> insert(std::get<1>(*element), (void*)element);
+    void push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>>* element, uint64_t bufferSize) {
+      this -> insert(std::get<1>(*element)/bufferSize, (void*)element);
     }
 
-    void * getPredecessor(T key) {
-      T prev = top.pred(key + 1);
+    void * getPredecessor(T key, uint64_t bufferSize) {
+      T prev = top.pred(key/bufferSize + 1);
 
       if (bottom.count(prev)) {
         auto b = bottom[prev];

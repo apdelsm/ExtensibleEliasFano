@@ -17,11 +17,11 @@ TuplesVector::TuplesVector(tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorF
 
 TuplesVector::~TuplesVector(){}
 
-void TuplesVector::push(tuple<uint64_t, uint64_t, sd_vector<>> *element) {
+void TuplesVector::push(tuple<uint64_t, uint64_t, sd_vector<>> *element, uint64_t bufferSize) {
   this -> tuplesVector.push_back(element);
 }
 
-tuple<uint64_t, uint64_t, sd_vector<>>* TuplesVector::getPredecessor(uint64_t value) {
+tuple<uint64_t, uint64_t, sd_vector<>>* TuplesVector::getPredecessor(uint64_t value, uint64_t bufferSize) {
   return (this -> predecessorFunction)(this -> tuplesVector, value);
 }
 

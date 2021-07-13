@@ -76,7 +76,7 @@ class btree_container {
   iterator lower_bound(const key_type &key) {
     return tree_.lower_bound(key);
   }
-  void * getPredecessor(const key_type &key) {
+  void * getPredecessor(const key_type &key, uint64_t bufferSize) {
     iterator lower_result = tree_.lower_bound(key);
     if (lower_result == tree_.begin() && lower_result.key() > key) {
       return NULL;
@@ -210,7 +210,7 @@ class btree_unique_container : public btree_container<Tree> {
   std::pair<iterator,bool> insert(const value_type &x) {
     return this->tree_.insert_unique(x);
   }
-  std::pair<iterator,bool> push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>>*x) {
+  std::pair<iterator,bool> push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>>*x, uint64_t bufferSize) {
     return this->tree_.insert_unique(std::make_pair(std::get<1>(*x), x));
   }
   iterator insert(iterator position, const value_type &x) {

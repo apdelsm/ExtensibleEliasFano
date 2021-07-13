@@ -15,11 +15,11 @@ RedBlackTree::RedBlackTree() {}
 
 RedBlackTree::~RedBlackTree() {}
 
-void RedBlackTree::push(tuple<uint64_t, uint64_t, sd_vector<>> *element) {
+void RedBlackTree::push(tuple<uint64_t, uint64_t, sd_vector<>> *element, uint64_t bufferSize) {
   (this -> redBlackTree)[get<1>(*element)] = element;
 }
 
-tuple<uint64_t, uint64_t, sd_vector<>>* RedBlackTree::getPredecessor(uint64_t value) {
+tuple<uint64_t, uint64_t, sd_vector<>>* RedBlackTree::getPredecessor(uint64_t value, uint64_t bufferSize) {
   map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>::iterator lowerResult = redBlackTree.lower_bound(value);
   if (lowerResult == redBlackTree.begin() && lowerResult -> first > value) {
     return NULL;

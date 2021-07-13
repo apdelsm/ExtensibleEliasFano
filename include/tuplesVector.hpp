@@ -13,7 +13,7 @@ class TuplesVector {
   public:
     TuplesVector(tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint64_t, uint64_t, sd_vector<>>*>&, uint64_t));
     ~TuplesVector();
-    void push(tuple<uint64_t, uint64_t, sd_vector<>> *element);
-    tuple<uint64_t, uint64_t, sd_vector<>>* getPredecessor(uint64_t value);
+    void push(tuple<uint64_t, uint64_t, sd_vector<>> *element, uint64_t bufferSize);
+    tuple<uint64_t, uint64_t, sd_vector<>>* getPredecessor(uint64_t value, uint64_t bufferSize);
     uint64_t eefsize();
 };

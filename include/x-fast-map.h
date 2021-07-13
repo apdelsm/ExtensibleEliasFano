@@ -152,13 +152,13 @@ class x_fast_map {
       return node ? node->key : -((T)1 << u_exp);
     }
 
-    void * getPredecessor(T key) {
-      auto node = pred_node(key + 1);
+    void * getPredecessor(T key, uint64_t bufferSize) {
+      auto node = pred_node(key/bufferSize + 1);
       return node ? node->value : nullptr;
     }
 
-    void push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>> *element) {
-      insert(std::get<1>(*element), (void*)element);
+    void push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>> *element, uint64_t bufferSize) {
+      insert(std::get<1>(*element)/bufferSize, (void*)element);
     }
 
     uint64_t eefsize() {
