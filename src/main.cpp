@@ -23,11 +23,11 @@
 using namespace std;
 using namespace sdsl;
 
-void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, ExtensibleEliasFano<v_eb<uint64_t>> *vEBMap, char action, uint64_t actionNumber = 0);
+void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, /*ExtensibleEliasFano<v_eb<uint64_t>> *vEBMap,*/ char action, uint64_t actionNumber = 0);
 void runTest(string testFilePath, uint64_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test);
 int main() {
 
-  vector<uint64_t> bufferSizes = {64/*, 128, 256, 512, 1024, 2048*/};
+  vector<uint64_t> bufferSizes = {64, 128, 256, 512, 1024, 2048};
 
   for (vector<uint64_t>::iterator bufferIt = bufferSizes.begin(), bufferEnd = bufferSizes.end(); bufferIt != bufferEnd; ++bufferIt){
     
@@ -94,7 +94,7 @@ void runTest(string testFilePath, uint64_t bufferSize, string testType, float pr
     exit(50);
   }
   testFile >> bitsLimit;
-  const uint64_t uExp = ceil(log2(bitsLimit));
+  const uint64_t uExp = ceil(log2(bitsLimit/bufferSize));
   ExtensibleEliasFano<TuplesVector> *tupleLineal = new ExtensibleEliasFano<TuplesVector>(bufferSize, linearSearch);
   ExtensibleEliasFano<TuplesVector> *tupleInterpolation = new ExtensibleEliasFano<TuplesVector>(bufferSize, interpolationSearch);
   ExtensibleEliasFano<TuplesVector> *tupleBinary = new ExtensibleEliasFano<TuplesVector>(bufferSize, binarySearch);
@@ -103,7 +103,7 @@ void runTest(string testFilePath, uint64_t bufferSize, string testType, float pr
   ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap = new ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(bufferSize);
   ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap = new ExtensibleEliasFano<x_fast_map<uint64_t>>(bufferSize, uExp);
   ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap = new ExtensibleEliasFano<y_fast<uint64_t>>(bufferSize, uExp);
-  ExtensibleEliasFano<v_eb<uint64_t>> *vEBMap = new ExtensibleEliasFano<v_eb<uint64_t>>(bufferSize, uExp);
+  //ExtensibleEliasFano<v_eb<uint64_t>> *vEBMap = new ExtensibleEliasFano<v_eb<uint64_t>>(bufferSize, uExp);
   //iterate over file, for every bit
   char fileRead;
   testFile.get(fileRead);
@@ -114,21 +114,21 @@ void runTest(string testFilePath, uint64_t bufferSize, string testType, float pr
       testFile >> actionNumber;
       action = 's';
       testFile.get(fileRead);
-      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, vEBMap, action, actionNumber);
+      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, /*vEBMap,*/ action, actionNumber);
     } else if (fileRead == 'r') {
       testFile >> actionNumber;
       action = 'r';
       testFile.get(fileRead);
-      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, vEBMap, action, actionNumber);
+      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, /*vEBMap,*/ action, actionNumber);
     } else if (fileRead == '0' || fileRead == '1') {
       actionNumber = fileRead - '0';
       action = 'i';
-      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, vEBMap, action, actionNumber);
+      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, /*vEBMap,*/ action, actionNumber);
     }
   }
   testFile.close();
 
-  manageBit("", 0, 0, 1, 1, 0, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, vEBMap, 'c');
+  manageBit("", 0, 0, 1, 1, 0, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, /*vEBMap,*/ 'c');
   delete tupleLineal;
   delete tupleInterpolation;
   delete tupleBinary;
@@ -137,10 +137,10 @@ void runTest(string testFilePath, uint64_t bufferSize, string testType, float pr
   delete avlMap;
   delete xFastMap;
   delete yFastMap;
-  delete vEBMap;
+  //delete vEBMap;
 }
 
-void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, ExtensibleEliasFano<v_eb<uint64_t>> *vEBMap, char action, uint64_t actionNumber) {
+void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, /*ExtensibleEliasFano<v_eb<uint64_t>> *vEBMap,*/ char action, uint64_t actionNumber) {
   static uint64_t count = 0;
   static uint64_t ones = 0;
   static uint64_t selects = 0;
@@ -172,9 +172,9 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
   static chrono::duration<float, milli> yFastMapInsertTime = start - start;
   static chrono::duration<float, milli> yFastMapSelectTime = start - start;
   static chrono::duration<float, milli> yFastMapRankTime = start - start;
-  static chrono::duration<float, milli> vEBMapInsertTime = start - start;
-  static chrono::duration<float, milli> vEBMapSelectTime = start - start;
-  static chrono::duration<float, milli> vEBMapRankTime = start - start;
+  //static chrono::duration<float, milli> vEBMapInsertTime = start - start;
+  //static chrono::duration<float, milli> vEBMapSelectTime = start - start;
+  //static chrono::duration<float, milli> vEBMapRankTime = start - start;
 
   if (action == 'c') {
     count = 0;
@@ -205,9 +205,9 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
     yFastMapInsertTime = start - start;
     yFastMapSelectTime = start - start;
     yFastMapRankTime = start - start;
-    vEBMapInsertTime = start - start;
-    vEBMapSelectTime = start - start;
-    vEBMapRankTime = start - start;
+    //vEBMapInsertTime = start - start;
+    //vEBMapSelectTime = start - start;
+    //vEBMapRankTime = start - start;
   } else if (action == 'i') {
 
     uint64_t aux;
@@ -288,14 +288,14 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
       exit(18);
     }
 
-    start = chrono::system_clock::now();
-    aux = vEBMap -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    vEBMapInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(19);
-    }
+    //start = chrono::system_clock::now();
+    //aux = vEBMap -> pushBit(actionNumber);
+    //end = chrono::system_clock::now();
+    //vEBMapInsertTime += end - start;
+    //cout << aux << endl;
+    //if (aux != count) {
+    //  exit(19);
+    //}
 
     if (count % 100 == 0) {
       cout << "register" << endl;
@@ -332,9 +332,9 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
       results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
               << "Y-fast-trie;" << count << ";" << ones << ";" << yFastMap -> size() << ";" << selects << ";" << ranks << ";"
               << yFastMapInsertTime.count() << ";" << yFastMapSelectTime.count() << ";" << yFastMapRankTime.count() << endl;
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "vEB;" << count << ";" << ones << ";" << vEBMap -> size() << ";" << selects << ";" << ranks << ";"
-              << vEBMapInsertTime.count() << ";" << vEBMapSelectTime.count() << ";" << vEBMapRankTime.count() << endl;
+      //results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
+      //        << "vEB;" << count << ";" << ones << ";" << vEBMap -> size() << ";" << selects << ";" << ranks << ";"
+      //        << vEBMapInsertTime.count() << ";" << vEBMapSelectTime.count() << ";" << vEBMapRankTime.count() << endl;
       results.close();
     }
   } else if (action == 's') {
@@ -415,14 +415,14 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
       exit(27);
     }
 
-    start = chrono::system_clock::now();
-    aux = vEBMap -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    vEBMapSelectTime += end - start;
-    cout << aux << endl;
-    if (selectResult != aux2) {
-      exit(28);
-    }
+    //start = chrono::system_clock::now();
+    //aux = vEBMap -> select1(actionNumber,aux2);
+    //end = chrono::system_clock::now();
+    //vEBMapSelectTime += end - start;
+    //cout << aux << endl;
+    //if (selectResult != aux2) {
+    //  exit(28);
+    //}
   } else {
 
     uint64_t rankResult;
@@ -500,13 +500,13 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
       exit(37);
     }
 
-    start = chrono::system_clock::now();
-    aux = vEBMap -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    vEBMapRankTime += end - start;
-    cout << aux << endl;
-    if (rankResult != aux) {
-      exit(38);
-    }
+    //start = chrono::system_clock::now();
+    //aux = vEBMap -> rank1(actionNumber);
+    //end = chrono::system_clock::now();
+    //vEBMapRankTime += end - start;
+    //cout << aux << endl;
+    //if (rankResult != aux) {
+    //  exit(38);
+    //}
   }
 };
