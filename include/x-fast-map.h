@@ -154,7 +154,12 @@ class x_fast_map {
 
     void * getPredecessor(T key, uint64_t bufferSize) {
       auto node = pred_node(key/bufferSize + 1);
-      return node ? node->value : nullptr;
+      if (node && std::get<1>(*(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>> *)(node->value)) <= key) {
+        return node->value;
+      } else if(node->prev) {
+        return node->prev->value;
+      }
+      return nullptr;
     }
 
     void push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>> *element, uint64_t bufferSize) {

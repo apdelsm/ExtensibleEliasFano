@@ -45,14 +45,21 @@ class y_fast {
 
       if (bottom.count(prev)) {
         auto b = bottom[prev];
-        auto it = b.lower_bound(key);
-        if (it == b.begin() && it->first > key) {
+        auto it = b.lower_bound(key/bufferSize);
+        if (it == b.begin() && it->first > key/bufferSize) {
           return nullptr;
         }
-        if (it == b.end() || it->first > key) {
+        if (it == b.end() || it->first > key/bufferSize) {
           --it;
         }
-        return it->second; 
+        if (std::get<1>(*(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>> *)(it->second)) <= key) {
+          return it->second;
+        } else if (it != b.begin()) {
+          return (--it)->second;
+        } else if (key >= bufferSize) {
+          return getPredecessor(key - bufferSize, bufferSize);
+        }
+        return nullptr;
       }
       return nullptr;
     }
