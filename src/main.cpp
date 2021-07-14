@@ -23,12 +23,15 @@
 using namespace std;
 using namespace sdsl;
 
-void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, char action, uint64_t actionNumber = 0);
-void runTest(string testFilePath, uint64_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test);
+void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, char action, uint64_t actionNumber = 0, int confId = -1);
+void runTest(string testFilePath, uint64_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId);
 int main() {
 
   vector<uint64_t> bufferSizes = {64, 128, 256, 512, 1024, 2048};
-
+  ofstream confIds;
+  confIds.open("configuationIds.csv", ofstream::trunc);
+  confIds << "ID;TestType;BufferSize;Probabilitie;ZerosRunSize;OnesRunSize;TestCount";
+  int idCount = 0;
   for (vector<uint64_t>::iterator bufferIt = bufferSizes.begin(), bufferEnd = bufferSizes.end(); bufferIt != bufferEnd; ++bufferIt){
     
     // Random bits
@@ -40,10 +43,10 @@ int main() {
       float prob = (float)stoi(filename.substr(1,3)) / 100;
       int test = stoi(filename.substr(4, filename.find('.')));
       cout << filePath << endl;
-      runTest(filePath, *bufferIt, "Random", prob, 1, 1, test);
+      runTest(filePath, *bufferIt, "Random", prob, 1, 1, test, idCount);
+      confIds << idCount << ";" << "Random;" << *bufferIt << ";" << prob << ";" << "1;1;" << test;
+      ++idCount;
     }
-
-    //runTest("./tests/randomBits/p60t0.txt", *bufferIt, "Random", 0.6, 1, 1, 0);
 
     // Random Runs
 
@@ -59,12 +62,13 @@ int main() {
       float prob = (float)stoi(filename.substr(pPos + 1, pPos + 3)) / 100;
       int test = stoi(filename.substr(pPos + 4, filename.find('.')));
       cout << filePath << endl;
-      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test);
+      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test, idCount);
+      confIds << idCount << ";" << "Random Runs;" << *bufferIt << ";" << prob << ";" << zeros << ";" << ones << ";" << test;
+      ++idCount;
     }
-    
-    //runTest("./tests/randomRuns/z1024o256p60t0.txt", *bufferIt, "Random Runs", 0.4, 1024, 16384, 0);
-    
+        
     // Poisson Runs
+    
     path = "./tests/poissonRuns/";
     for (const auto & entry : filesystem::directory_iterator(path)) {
       string filePath = entry.path();
@@ -77,16 +81,16 @@ int main() {
       float prob = (float)stoi(filename.substr(pPos + 1, pPos + 3)) / 100;
       int test = stoi(filename.substr(pPos + 4, filename.find('.')));
       cout << filePath << endl;
-      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test);
-    }
-
-    //runTest("./tests/randomRuns/z1024o256p60t0.txt", *bufferIt, "Random Runs", 0.4, 1024, 16384, 0);
-    
+      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test, idCount);
+      confIds << idCount << ";" << "Random Runs;" << *bufferIt << ";" << prob << ";" << zeros << ";" << ones << ";" << test;
+      ++idCount;
+    }    
   }
+  confIds.close();
   return 0;
 }
 
-void runTest(string testFilePath, uint64_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test) {
+void runTest(string testFilePath, uint64_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId) {
   int bitsLimit;
   ifstream testFile(testFilePath);
   if (!testFile.is_open()) {
@@ -123,7 +127,7 @@ void runTest(string testFilePath, uint64_t bufferSize, string testType, float pr
     } else if (fileRead == '0' || fileRead == '1') {
       actionNumber = fileRead - '0';
       action = 'i';
-      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, action, actionNumber);
+      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, action, actionNumber, confId);
     }
   }
   testFile.close();
@@ -139,7 +143,7 @@ void runTest(string testFilePath, uint64_t bufferSize, string testType, float pr
   delete yFastMap;
 }
 
-void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, char action, uint64_t actionNumber) {
+void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, char action, uint64_t actionNumber, int confId) {
   static uint64_t count = 0;
   static uint64_t ones = 0;
   static uint64_t selects = 0;
@@ -281,40 +285,32 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
       exit(18);
     }
 
-    if (count % 100 == 0) {
+    if (count % 10000 == 0) {
       cout << "register" << endl;
       static bool header = true;
       ofstream results;
       if (header) {
         results.open("results.csv", ofstream::trunc);
-        results << "TestType;BufferSize;Probabilitie;ZerosRunSize;OnesRunSize;TestCount;Structure;Bits;Ones;Size;Selects;Ranks;Insert Time;Random Select Time;Random Rank Time" << endl;;
+        results << "confID;Structure;Ones;Size;Selects;Ranks;Insert Time;Random Select Time;Random Rank Time" << endl;
         header = false;
         results.close();
       }
       results.open("results.csv", ofstream::app);
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "Tuples Lineal;" << count << ";" << ones << ";" << tupleLineal -> size() << ";" << selects << ";" << ranks << ";"
+      results << confId << ";" << "Tuples Lineal;" << ones << ";" << tupleLineal -> size() << ";" << selects << ";" << ranks << ";"
               << tupleLinealInsertTime.count() << ";" << tupleLinealSelectTime.count() << ";" << tupleLinealRankTime.count() << endl;
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "Tuples Interpolation;" << count << ";" << ones << ";" << tupleInterpolation -> size() << ";" << selects << ";" << ranks << ";"
+      results << confId << ";" << "Tuples Interpolation;" << ones << ";" << tupleInterpolation -> size() << ";" << selects << ";" << ranks << ";"
               << tupleInterpolationInsertTime.count() << ";" << tupleInterpolationSelectTime.count() << ";" << tupleInterpolationRankTime.count() << endl;
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "Tuples Binary;" << count << ";" << ones << ";" << tupleBinary -> size() << ";" << selects << ";" << ranks << ";"
+      results << confId << ";" << "Tuples Binary;" << ones << ";" << tupleBinary -> size() << ";" << selects << ";" << ranks << ";"
               << tupleBinaryInsertTime.count() << ";" << tupleBinarySelectTime.count() << ";" << tupleBinaryRankTime.count() << endl;
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "Btree map;" << count << ";" << ones << ";" << btreeMap -> size() << ";" << selects << ";" << ranks << ";"
+      results << confId << ";" << "Btree map;" << ones << ";" << btreeMap -> size() << ";" << selects << ";" << ranks << ";"
               << btreeMapInsertTime.count() << ";" << btreeMapSelectTime.count() << ";" << btreeMapRankTime.count() << endl;
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "Red Black Tree;" << count << ";" << ones << ";" << redBlackTree -> size() << ";" << selects << ";" << ranks << ";"
+      results << confId << ";" << "Red Black Tree;" << ones << ";" << redBlackTree -> size() << ";" << selects << ";" << ranks << ";"
               << redBlackTreeInsertTime.count() << ";" << redBlackTreeSelectTime.count() << ";" << redBlackTreeRankTime.count() << endl;
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "Avl Map;" << count << ";" << ones << ";" << avlMap -> size() << ";" << selects << ";" << ranks << ";"
+      results << confId << ";" << "Avl Map;" << ones << ";" << avlMap -> size() << ";" << selects << ";" << ranks << ";"
               << avlMapInsertTime.count() << ";" << avlMapSelectTime.count() << ";" << avlMapRankTime.count() << endl;
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "X-fast-trie;" << count << ";" << ones << ";" << xFastMap -> size() << ";" << selects << ";" << ranks << ";"
+      results << confId << ";" << "X-fast-trie;" << ones << ";" << xFastMap -> size() << ";" << selects << ";" << ranks << ";"
               << xFastMapInsertTime.count() << ";" << xFastMapSelectTime.count() << ";" << xFastMapRankTime.count() << endl;
-      results << testType << ";" << bufferSize << ";" << probabilitie << ";" << zerosRunSize << ";" << onesRunSize << ";" << test << ";"
-              << "Y-fast-trie;" << count << ";" << ones << ";" << yFastMap -> size() << ";" << selects << ";" << ranks << ";"
+      results << confId << ";" << "Y-fast-trie;" << ones << ";" << yFastMap -> size() << ";" << selects << ";" << ranks << ";"
               << yFastMapInsertTime.count() << ";" << yFastMapSelectTime.count() << ";" << yFastMapRankTime.count() << endl;
       results.close();
     }
