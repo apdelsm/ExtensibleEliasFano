@@ -23,16 +23,14 @@
 using namespace std;
 using namespace sdsl;
 
-void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, char action, uint64_t actionNumber = 0, int confId = -1);
-void runTest(string testFilePath, uint64_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId);
-int main() {
-
-  vector<uint64_t> bufferSizes = {64, 128, 256, 512, 1024, 2048};
+void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, char action, uint32_t actionNumber = 0, int confId = -1);
+void runTest(string testFilePath, uint32_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId, char struc);
+int main(int argc, char *argv[]) {
+  std::ios::sync_with_stdio(false);
+  vector<uint32_t> bufferSizes = {256, 512, 1024, 2048};
   ofstream confIds;
-  confIds.open("configuationIds.csv", ofstream::trunc);
-  confIds << "ID;TestType;BufferSize;Probabilitie;ZerosRunSize;OnesRunSize;TestCount";
   int idCount = 0;
-  for (vector<uint64_t>::iterator bufferIt = bufferSizes.begin(), bufferEnd = bufferSizes.end(); bufferIt != bufferEnd; ++bufferIt){
+  for (vector<uint32_t>::iterator bufferIt = bufferSizes.begin(), bufferEnd = bufferSizes.end(); bufferIt != bufferEnd; ++bufferIt){
     
     // Random bits
 
@@ -43,8 +41,7 @@ int main() {
       float prob = (float)stoi(filename.substr(1,3)) / 100;
       int test = stoi(filename.substr(4, filename.find('.')));
       cout << filePath << endl;
-      runTest(filePath, *bufferIt, "Random", prob, 1, 1, test, idCount);
-      confIds << idCount << ";" << "Random;" << *bufferIt << ";" << prob << ";" << "1;1;" << test;
+      runTest(filePath, *bufferIt, "Random", prob, 1, 1, test, idCount, *argv[1]);
       ++idCount;
     }
 
@@ -62,8 +59,7 @@ int main() {
       float prob = (float)stoi(filename.substr(pPos + 1, pPos + 3)) / 100;
       int test = stoi(filename.substr(pPos + 4, filename.find('.')));
       cout << filePath << endl;
-      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test, idCount);
-      confIds << idCount << ";" << "Random Runs;" << *bufferIt << ";" << prob << ";" << zeros << ";" << ones << ";" << test;
+      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test, idCount, *argv[1]);
       ++idCount;
     }
         
@@ -81,16 +77,22 @@ int main() {
       float prob = (float)stoi(filename.substr(pPos + 1, pPos + 3)) / 100;
       int test = stoi(filename.substr(pPos + 4, filename.find('.')));
       cout << filePath << endl;
-      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test, idCount);
-      confIds << idCount << ";" << "Random Runs;" << *bufferIt << ";" << prob << ";" << zeros << ";" << ones << ";" << test;
+      runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test, idCount, *argv[1]);
       ++idCount;
     }    
   }
-  confIds.close();
   return 0;
 }
 
-void runTest(string testFilePath, uint64_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId) {
+void runTest(string testFilePath, uint32_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId, char struc) {
+  ExtensibleEliasFano<TuplesVector> *tupleLineal = NULL;
+  ExtensibleEliasFano<TuplesVector> *tupleInterpolation = NULL;
+  ExtensibleEliasFano<TuplesVector> *tupleBinary = NULL;
+  ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap = NULL;
+  ExtensibleEliasFano<RedBlackTree> *redBlackTree = NULL;
+  ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap = NULL;
+  ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap = NULL;
+  ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap = NULL;
   int bitsLimit;
   ifstream testFile(testFilePath);
   if (!testFile.is_open()) {
@@ -98,21 +100,38 @@ void runTest(string testFilePath, uint64_t bufferSize, string testType, float pr
     exit(50);
   }
   testFile >> bitsLimit;
-  const uint64_t uExp = ceil(log2(bitsLimit/bufferSize));
-  ExtensibleEliasFano<TuplesVector> *tupleLineal = new ExtensibleEliasFano<TuplesVector>(bufferSize, linearSearch);
-  ExtensibleEliasFano<TuplesVector> *tupleInterpolation = new ExtensibleEliasFano<TuplesVector>(bufferSize, interpolationSearch);
-  ExtensibleEliasFano<TuplesVector> *tupleBinary = new ExtensibleEliasFano<TuplesVector>(bufferSize, binarySearch);
-  ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap = new ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(bufferSize);
-  ExtensibleEliasFano<RedBlackTree> *redBlackTree = new ExtensibleEliasFano<RedBlackTree>(bufferSize);
-  ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap = new ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>>(bufferSize);
-  ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap = new ExtensibleEliasFano<x_fast_map<uint64_t>>(bufferSize, uExp);
-  ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap = new ExtensibleEliasFano<y_fast<uint64_t>>(bufferSize, uExp);
+  const uint32_t uExp = ceil(log2(bitsLimit/bufferSize));
+
+  if (struc == '0') {
+    tupleLineal = new ExtensibleEliasFano<TuplesVector>(bufferSize, linearSearch);
+  }
+  else if (struc == '1') {
+    tupleInterpolation = new ExtensibleEliasFano<TuplesVector>(bufferSize, interpolationSearch);
+  }
+  else if (struc == '2') {
+    tupleBinary = new ExtensibleEliasFano<TuplesVector>(bufferSize, binarySearch);
+  }
+  else if (struc == '3') {
+    btreeMap = new ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>>(bufferSize);
+  }
+  else if (struc == '4') {
+    redBlackTree = new ExtensibleEliasFano<RedBlackTree>(bufferSize);
+  }
+  else if (struc == '5') {
+    avlMap = new ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>>(bufferSize);
+  }
+  else if (struc == '6') {
+    xFastMap = new ExtensibleEliasFano<x_fast_map<uint32_t>>(bufferSize, uExp);
+  }
+  else if (struc == '7') {
+    yFastMap = new ExtensibleEliasFano<y_fast<uint32_t>>(bufferSize, uExp);
+  }
 
   //iterate over file, for every bit
   char fileRead;
   testFile.get(fileRead);
   char action;
-  uint64_t actionNumber;
+  uint32_t actionNumber;
   while (testFile.get(fileRead)) {
     if (fileRead == 's') {
       testFile >> actionNumber;
@@ -133,21 +152,37 @@ void runTest(string testFilePath, uint64_t bufferSize, string testType, float pr
   testFile.close();
 
   manageBit("", 0, 0, 1, 1, 0, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, 'c');
-  delete tupleLineal;
-  delete tupleInterpolation;
-  delete tupleBinary;
-  delete btreeMap;
-  delete redBlackTree;
-  delete avlMap;
-  delete xFastMap;
-  delete yFastMap;
+  if (struc == '0') {
+    delete tupleLineal;
+  }
+  else if (struc == '1') {
+    delete tupleInterpolation;
+  }
+  else if (struc == '2') {
+    delete tupleBinary;
+  }
+  else if (struc == '3') {
+    delete btreeMap;
+  }
+  else if (struc == '4') {
+    delete redBlackTree;
+  }
+  else if (struc == '5') {
+    delete avlMap;
+  }
+  else if (struc == '6') {
+    delete xFastMap;
+  }
+  else if (struc == '7') {
+    delete yFastMap;
+  }
 }
 
-void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint64_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint64_t>> *yFastMap, char action, uint64_t actionNumber, int confId) {
-  static uint64_t count = 0;
-  static uint64_t ones = 0;
-  static uint64_t selects = 0;
-  static uint64_t ranks = 0;
+void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, char action, uint32_t actionNumber, int confId) {
+  static uint32_t count = 0;
+  static uint32_t ones = 0;
+  static uint32_t selects = 0;
+  static uint32_t ranks = 0;
 
   auto start = chrono::system_clock::now();
   auto end = chrono::system_clock::now();
@@ -207,82 +242,75 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
     yFastMapRankTime = start - start;
   } else if (action == 'i') {
 
-    uint64_t aux;
+    uint32_t aux;
 
     count += 1;
 
     ones += actionNumber;
     cout << "insert | count: " << count << " | ones: " << ones << endl;
-    start = chrono::system_clock::now();
-    aux = tupleLineal -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    tupleLinealInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(11);
+
+    if (tupleLineal) {
+      start = chrono::system_clock::now();
+      aux = tupleLineal -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      tupleLinealInsertTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = tupleInterpolation -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    tupleInterpolationInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(12);
+    if (tupleInterpolation) {
+      start = chrono::system_clock::now();
+      aux = tupleInterpolation -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      tupleInterpolationInsertTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = tupleBinary -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    tupleBinaryInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(13);
+    if (tupleBinary) {
+      start = chrono::system_clock::now();
+      aux = tupleBinary -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      tupleBinaryInsertTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = btreeMap -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    btreeMapInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(14);
+    if (btreeMap) {
+      start = chrono::system_clock::now();
+      aux = btreeMap -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      btreeMapInsertTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = redBlackTree -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    redBlackTreeInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(15);
+    if (redBlackTree) {
+      start = chrono::system_clock::now();
+      aux = redBlackTree -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      redBlackTreeInsertTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = avlMap -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    avlMapInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(16);
+    if (avlMap) {
+      start = chrono::system_clock::now();
+      aux = avlMap -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      avlMapInsertTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = xFastMap -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    xFastMapInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(17);
+    if (xFastMap) {
+      start = chrono::system_clock::now();
+      aux = xFastMap -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      xFastMapInsertTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = yFastMap -> pushBit(actionNumber);
-    end = chrono::system_clock::now();
-    yFastMapInsertTime += end - start;
-    cout << aux << endl;
-    if (aux != count) {
-      exit(18);
+    if (yFastMap) {
+      start = chrono::system_clock::now();
+      aux = yFastMap -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      yFastMapInsertTime += end - start;
+      cout << aux << endl;
     }
 
     if (count % 10000 == 0) {
@@ -290,182 +318,215 @@ void manageBit(string testType, uint64_t bufferSize, float probabilitie, int zer
       static bool header = true;
       ofstream results;
       if (header) {
-        results.open("results.csv", ofstream::trunc);
-        results << "confID;Structure;Ones;Size;Selects;Ranks;Insert Time;Random Select Time;Random Rank Time" << endl;
+        if (tupleLineal) {
+          results.open("tupleLineal.csv", ofstream::trunc);
+        }
+        if (tupleInterpolation) {
+          results.open("tupleInterpolation.csv", ofstream::trunc);
+        }
+        if (tupleBinary) {
+          results.open("tupleBinary.csv", ofstream::trunc);
+        }
+        if (btreeMap) {
+          results.open("btreeMap.csv", ofstream::trunc);
+        }
+        if (redBlackTree) {
+          results.open("redBlackTree.csv", ofstream::trunc);
+        }
+        if (avlMap) {
+          results.open("avlMap.csv", ofstream::trunc);
+        }
+        if (xFastMap) {
+          results.open("xFastMap.csv", ofstream::trunc);
+        }
+        if (yFastMap) {
+          results.open("yFastMap.csv", ofstream::trunc);
+        }
+        results << "confID;Ones;Size;Selects;Ranks;Insert Time;Random Select Time;Random Rank Time" << endl;
         header = false;
         results.close();
       }
-      results.open("results.csv", ofstream::app);
-      results << confId << ";" << "Tuples Lineal;" << ones << ";" << tupleLineal -> size() << ";" << selects << ";" << ranks << ";"
-              << tupleLinealInsertTime.count() << ";" << tupleLinealSelectTime.count() << ";" << tupleLinealRankTime.count() << endl;
-      results << confId << ";" << "Tuples Interpolation;" << ones << ";" << tupleInterpolation -> size() << ";" << selects << ";" << ranks << ";"
-              << tupleInterpolationInsertTime.count() << ";" << tupleInterpolationSelectTime.count() << ";" << tupleInterpolationRankTime.count() << endl;
-      results << confId << ";" << "Tuples Binary;" << ones << ";" << tupleBinary -> size() << ";" << selects << ";" << ranks << ";"
-              << tupleBinaryInsertTime.count() << ";" << tupleBinarySelectTime.count() << ";" << tupleBinaryRankTime.count() << endl;
-      results << confId << ";" << "Btree map;" << ones << ";" << btreeMap -> size() << ";" << selects << ";" << ranks << ";"
-              << btreeMapInsertTime.count() << ";" << btreeMapSelectTime.count() << ";" << btreeMapRankTime.count() << endl;
-      results << confId << ";" << "Red Black Tree;" << ones << ";" << redBlackTree -> size() << ";" << selects << ";" << ranks << ";"
-              << redBlackTreeInsertTime.count() << ";" << redBlackTreeSelectTime.count() << ";" << redBlackTreeRankTime.count() << endl;
-      results << confId << ";" << "Avl Map;" << ones << ";" << avlMap -> size() << ";" << selects << ";" << ranks << ";"
-              << avlMapInsertTime.count() << ";" << avlMapSelectTime.count() << ";" << avlMapRankTime.count() << endl;
-      results << confId << ";" << "X-fast-trie;" << ones << ";" << xFastMap -> size() << ";" << selects << ";" << ranks << ";"
-              << xFastMapInsertTime.count() << ";" << xFastMapSelectTime.count() << ";" << xFastMapRankTime.count() << endl;
-      results << confId << ";" << "Y-fast-trie;" << ones << ";" << yFastMap -> size() << ";" << selects << ";" << ranks << ";"
-              << yFastMapInsertTime.count() << ";" << yFastMapSelectTime.count() << ";" << yFastMapRankTime.count() << endl;
+      if (tupleLineal) {
+        results.open("tupleLineal.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << tupleLineal -> size() << ";" << selects << ";" << ranks << ";"
+                << tupleLinealInsertTime.count() << ";" << tupleLinealSelectTime.count() << ";" << tupleLinealRankTime.count() << endl;
+      }
+      if (tupleInterpolation) {
+        results.open("tupleInterpolation.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << tupleInterpolation -> size() << ";" << selects << ";" << ranks << ";"
+                << tupleInterpolationInsertTime.count() << ";" << tupleInterpolationSelectTime.count() << ";" << tupleInterpolationRankTime.count() << endl;
+      }
+      if (tupleBinary) {
+        results.open("tupleBinary.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << tupleBinary -> size() << ";" << selects << ";" << ranks << ";"
+                << tupleBinaryInsertTime.count() << ";" << tupleBinarySelectTime.count() << ";" << tupleBinaryRankTime.count() << endl;
+      }
+      if (btreeMap) {
+        results.open("btreeMap.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << btreeMap -> size() << ";" << selects << ";" << ranks << ";"
+                << btreeMapInsertTime.count() << ";" << btreeMapSelectTime.count() << ";" << btreeMapRankTime.count() << endl;
+      }
+      if (redBlackTree) {
+        results.open("redBlackTree.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << redBlackTree -> size() << ";" << selects << ";" << ranks << ";"
+                << redBlackTreeInsertTime.count() << ";" << redBlackTreeSelectTime.count() << ";" << redBlackTreeRankTime.count() << endl;
+      }
+      if (avlMap) {
+        results.open("avlMap.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << avlMap -> size() << ";" << selects << ";" << ranks << ";"
+                << avlMapInsertTime.count() << ";" << avlMapSelectTime.count() << ";" << avlMapRankTime.count() << endl;
+      }
+      if (xFastMap) {
+        results.open("xFastMap.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << xFastMap -> size() << ";" << selects << ";" << ranks << ";"
+                << xFastMapInsertTime.count() << ";" << xFastMapSelectTime.count() << ";" << xFastMapRankTime.count() << endl;
+      }
+      if (yFastMap) {
+        results.open("yFastMap.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << yFastMap -> size() << ";" << selects << ";" << ranks << ";"
+                << yFastMapInsertTime.count() << ";" << yFastMapSelectTime.count() << ";" << yFastMapRankTime.count() << endl;
+      }
       results.close();
     }
   } else if (action == 's') {
-    uint64_t aux;
-    uint64_t selectResult;
-    uint64_t aux2;
+    uint32_t aux;
+    uint32_t aux2;
 
     selects += 1;
     cout << "select: " << actionNumber << endl;
 
-    start = chrono::system_clock::now();
-    aux = tupleLineal -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    tupleLinealSelectTime += end - start;
-    cout << aux << endl;
-    selectResult = aux2;
-
-    start = chrono::system_clock::now();
-    aux = tupleInterpolation -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    tupleInterpolationSelectTime += end - start;
-    cout << aux << endl;
-    if (selectResult != aux2) {
-      exit(21);
+    if (tupleLineal) {
+      start = chrono::system_clock::now();
+      aux = tupleLineal -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      tupleLinealSelectTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = tupleBinary -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    tupleBinarySelectTime += end - start;
-    cout << aux << endl;
-    if (selectResult != aux2) {
-      exit(22);
+    if (tupleInterpolation) {
+      start = chrono::system_clock::now();
+      aux = tupleInterpolation -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      tupleInterpolationSelectTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = btreeMap -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    btreeMapSelectTime += end - start;
-    cout << aux << endl;
-    if (selectResult != aux2) {
-      exit(23);
+    if (tupleBinary) {
+      start = chrono::system_clock::now();
+      aux = tupleBinary -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      tupleBinarySelectTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = redBlackTree -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    redBlackTreeSelectTime += end - start;
-    cout << aux << endl;
-    if (selectResult != aux2) {
-      exit(24);
+    if (btreeMap) {
+      start = chrono::system_clock::now();
+      aux = btreeMap -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      btreeMapSelectTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = avlMap -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    avlMapSelectTime += end - start;
-    cout << aux << endl;
-    if (selectResult != aux2) {
-      exit(25);
+    if (redBlackTree) {
+      start = chrono::system_clock::now();
+      aux = redBlackTree -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      redBlackTreeSelectTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = xFastMap -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    xFastMapSelectTime += end - start;
-    cout << aux << endl;
-    if (selectResult != aux2) {
-      exit(26);
+    if (avlMap) {
+      start = chrono::system_clock::now();
+      aux = avlMap -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      avlMapSelectTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = yFastMap -> select1(actionNumber,aux2);
-    end = chrono::system_clock::now();
-    yFastMapSelectTime += end - start;
-    cout << aux << endl;
-    if (selectResult != aux2) {
-      exit(27);
+    if (xFastMap) {
+      start = chrono::system_clock::now();
+      aux = xFastMap -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      xFastMapSelectTime += end - start;
+      cout << aux << endl;
+    }
+
+    if (yFastMap) {
+      start = chrono::system_clock::now();
+      aux = yFastMap -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      yFastMapSelectTime += end - start;
+      cout << aux << endl;
     }
   } else {
 
-    uint64_t rankResult;
-    uint64_t aux;
+    uint32_t aux;
 
     ranks += 1;
     cout << "rank: " << actionNumber << endl;
-    start = chrono::system_clock::now();
-    aux = tupleLineal -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    tupleLinealRankTime += end - start;
-    cout << aux << endl;
-    rankResult = aux;
 
-    start = chrono::system_clock::now();
-    aux = tupleInterpolation -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    tupleInterpolationRankTime += end - start;
-    cout << aux << endl;
-    if (rankResult != aux) {
-      exit(31);
+    if (tupleLineal) {
+      start = chrono::system_clock::now();
+      aux = tupleLineal -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      tupleLinealRankTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = tupleBinary -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    tupleBinaryRankTime += end - start;
-    cout << aux << endl;
-    if (rankResult != aux) {
-      exit(32);
+    if (tupleInterpolation) {
+      start = chrono::system_clock::now();
+      aux = tupleInterpolation -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      tupleInterpolationRankTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = btreeMap -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    btreeMapRankTime += end - start;
-    cout << aux << endl;
-    if (rankResult != aux) {
-      exit(33);
+    if (tupleBinary) {
+      start = chrono::system_clock::now();
+      aux = tupleBinary -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      tupleBinaryRankTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = redBlackTree -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    redBlackTreeRankTime += end - start;
-    cout << aux << endl;
-    if (rankResult != aux) {
-      exit(34);
+    if (btreeMap) {
+      start = chrono::system_clock::now();
+      aux = btreeMap -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      btreeMapRankTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = avlMap -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    avlMapRankTime += end - start;
-    cout << aux << endl;
-    if (rankResult != aux) {
-      exit(35);
+    if (redBlackTree) {
+      start = chrono::system_clock::now();
+      aux = redBlackTree -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      redBlackTreeRankTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = xFastMap -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    xFastMapRankTime += end - start;
-    cout << aux << endl;
-    if (rankResult != aux) {
-      exit(36);
+    if (avlMap) {
+      start = chrono::system_clock::now();
+      aux = avlMap -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      avlMapRankTime += end - start;
+      cout << aux << endl;
     }
 
-    start = chrono::system_clock::now();
-    aux = yFastMap -> rank1(actionNumber);
-    end = chrono::system_clock::now();
-    yFastMapRankTime += end - start;
-    cout << aux << endl;
-    if (rankResult != aux) {
-      exit(37);
+    if (xFastMap) {
+      start = chrono::system_clock::now();
+      aux = xFastMap -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      xFastMapRankTime += end - start;
+      cout << aux << endl;
+    }
+
+    if (yFastMap) {
+      start = chrono::system_clock::now();
+      aux = yFastMap -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      yFastMapRankTime += end - start;
+      cout << aux << endl;
     }
   }
 };
