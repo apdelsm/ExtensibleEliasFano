@@ -8,11 +8,11 @@ using namespace sdsl;
 
 class RedBlackTree {
   private:
-    map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*> redBlackTree;
+    map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*> redBlackTree;
   public:
     RedBlackTree();
     ~RedBlackTree();
-    void push(tuple<uint64_t, uint64_t, sd_vector<>> *element, uint64_t bufferSize);
-    tuple<uint64_t, uint64_t, sd_vector<>>* getPredecessor(uint64_t value, uint64_t bufferSize);
-    uint64_t eefsize();
+    void push(tuple<uint32_t, uint32_t, sd_vector<>> *element, uint32_t bufferSize);
+    tuple<uint32_t, uint32_t, sd_vector<>>* getPredecessor(uint32_t value, uint32_t bufferSize);
+    uint32_t eefsize();
 };

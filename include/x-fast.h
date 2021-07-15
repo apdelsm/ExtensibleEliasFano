@@ -145,8 +145,8 @@ class x_fast {
     return node ? node->key : -((T)1 << u_exp);
   }
 
-  uint64_t eefsize() {
-    uint64_t returnSize = 0;
+  uint32_t eefsize() {
+    uint32_t returnSize = 0;
     returnSize += sizeof(u_exp);
     returnSize += sizeof(std::vector<level>);
     returnSize += sizeof(level) * (u_exp + 1);

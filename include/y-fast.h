@@ -18,13 +18,13 @@ THIS FILE WAS EDITED BY ABDEL SANDOVAL
 
 template <typename T>
 class y_fast {
-  const uint64_t u_exp;
+  const uint32_t u_exp;
 
   x_fast<T> top;
   std::unordered_map<T, std::map<T, void*>> bottom;
 
   public:
-    y_fast(uint64_t _u_exp)
+    y_fast(uint32_t _u_exp)
         : u_exp(_u_exp), top(u_exp) {}
 
     void insert(T key, void *value) {
@@ -36,11 +36,11 @@ class y_fast {
       bottom[repr].insert(std::make_pair(key, value));
     }
 
-    void push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>>* element, uint64_t bufferSize) {
+    void push(std::tuple<uint32_t, uint32_t, sdsl::sd_vector<>>* element, uint32_t bufferSize) {
       this -> insert(std::get<1>(*element)/bufferSize, (void*)element);
     }
 
-    void * getPredecessor(T key, uint64_t bufferSize) {
+    void * getPredecessor(T key, uint32_t bufferSize) {
       T prev = top.pred(key/bufferSize + 1);
 
       if (bottom.count(prev)) {
@@ -52,7 +52,7 @@ class y_fast {
         if (it == b.end() || it->first > key/bufferSize) {
           --it;
         }
-        if (std::get<1>(*(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>> *)(it->second)) <= key) {
+        if (std::get<1>(*(std::tuple<uint32_t, uint32_t, sdsl::sd_vector<>> *)(it->second)) <= key) {
           return it->second;
         } else if (it != b.begin()) {
           return (--it)->second;
@@ -64,8 +64,8 @@ class y_fast {
       return nullptr;
     }
 
-    uint64_t eefsize() {
-      uint64_t returnSize = 0;
+    uint32_t eefsize() {
+      uint32_t returnSize = 0;
       returnSize += top.eefsize();
       returnSize += sizeof(u_exp);
       returnSize += sizeof(std::unordered_map<T, std::map<T, void*>>);

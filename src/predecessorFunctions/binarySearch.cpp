@@ -9,10 +9,10 @@ using namespace sdsl;
 #ifndef BINARYSEARCH
 #define BINARYSEARCH
 
-tuple<uint64_t, uint64_t, sd_vector<>>* binarySearch(vector<tuple<uint64_t, uint64_t, sd_vector<>>*> &orderedVector, uint64_t element) {
-  uint64_t low = 0;
-  uint64_t high = orderedVector.size() - 1;
-  uint64_t mid;
+tuple<uint32_t, uint32_t, sd_vector<>>* binarySearch(vector<tuple<uint32_t, uint32_t, sd_vector<>>*> &orderedVector, uint32_t element) {
+  uint32_t low = 0;
+  uint32_t high = orderedVector.size() - 1;
+  uint32_t mid;
   if (element < get<1>(*(orderedVector[0]))) {
     return NULL;
   }

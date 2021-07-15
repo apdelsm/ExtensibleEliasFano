@@ -6,4 +6,4 @@
 using namespace std;
 using namespace sdsl;
 
-tuple<uint64_t, uint64_t, sd_vector<>>* interpolationSearch(vector<tuple<uint64_t, uint64_t, sd_vector<>>*> &orderedVector, uint64_t element);
+tuple<uint32_t, uint32_t, sd_vector<>>* interpolationSearch(vector<tuple<uint32_t, uint32_t, sd_vector<>>*> &orderedVector, uint32_t element);

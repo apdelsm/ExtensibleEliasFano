@@ -489,7 +489,7 @@ public:
     return _Res(__res.second, false);
 	}
     std::pair<iterator, bool>
-    push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>>* val, uint64_t bufferSize) {
+    push(std::tuple<uint32_t, uint32_t, sdsl::sd_vector<>>* val, uint32_t bufferSize) {
       return this -> insert(std::make_pair(std::get<1>(*val), val));
     }
 	
@@ -745,7 +745,7 @@ public:
         return iterator(y);
     }
 
-    void * getPredecessor (const key_type& k, uint64_t bufferSize) {
+    void * getPredecessor (const key_type& k, uint32_t bufferSize) {
       if (this->begin()->first > k) {
         return NULL;
       }

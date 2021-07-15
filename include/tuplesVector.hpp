@@ -8,12 +8,12 @@ using namespace sdsl;
 
 class TuplesVector {
   private:
-    vector<tuple<uint64_t, uint64_t, sd_vector<>>*> tuplesVector;
-    tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint64_t, uint64_t, sd_vector<>>*>&, uint64_t);
+    vector<tuple<uint32_t, uint32_t, sd_vector<>>*> tuplesVector;
+    tuple<uint32_t, uint32_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint32_t, uint32_t, sd_vector<>>*>&, uint32_t);
   public:
-    TuplesVector(tuple<uint64_t, uint64_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint64_t, uint64_t, sd_vector<>>*>&, uint64_t));
+    TuplesVector(tuple<uint32_t, uint32_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint32_t, uint32_t, sd_vector<>>*>&, uint32_t));
     ~TuplesVector();
-    void push(tuple<uint64_t, uint64_t, sd_vector<>> *element, uint64_t bufferSize);
-    tuple<uint64_t, uint64_t, sd_vector<>>* getPredecessor(uint64_t value, uint64_t bufferSize);
-    uint64_t eefsize();
+    void push(tuple<uint32_t, uint32_t, sd_vector<>> *element, uint32_t bufferSize);
+    tuple<uint32_t, uint32_t, sd_vector<>>* getPredecessor(uint32_t value, uint32_t bufferSize);
+    uint32_t eefsize();
 };

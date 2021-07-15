@@ -30,7 +30,7 @@ struct x_fast_node {
 
 template <typename T>
 class x_fast_map {
-  const uint64_t u_exp;
+  const uint32_t u_exp;
 
   typedef std::unordered_map<T, x_fast_node<T>*> level;
 
@@ -84,7 +84,7 @@ class x_fast_map {
   }
 
   public:
-    x_fast_map(uint64_t _u_exp) : u_exp(_u_exp) {
+    x_fast_map(uint32_t _u_exp) : u_exp(_u_exp) {
       levels.resize(u_exp + 1);
       levels[0][0] = new x_fast_node<T>();
     }
@@ -113,7 +113,7 @@ class x_fast_map {
         next->prev = curr;
       }
 
-      for (uint64_t i = 1; i <= u_exp; i++) {
+      for (uint32_t i = 1; i <= u_exp; i++) {
         auto prefix = key >> (u_exp - i);
 
         auto parent = levels[i - 1][prefix >> 1];
@@ -152,9 +152,9 @@ class x_fast_map {
       return node ? node->key : -((T)1 << u_exp);
     }
 
-    void * getPredecessor(T key, uint64_t bufferSize) {
+    void * getPredecessor(T key, uint32_t bufferSize) {
       auto node = pred_node(key/bufferSize + 1);
-      if (node && std::get<1>(*(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>> *)(node->value)) <= key) {
+      if (node && std::get<1>(*(std::tuple<uint32_t, uint32_t, sdsl::sd_vector<>> *)(node->value)) <= key) {
         return node->value;
       } else if(node->prev) {
         return node->prev->value;
@@ -162,12 +162,12 @@ class x_fast_map {
       return nullptr;
     }
 
-    void push(std::tuple<uint64_t, uint64_t, sdsl::sd_vector<>> *element, uint64_t bufferSize) {
+    void push(std::tuple<uint32_t, uint32_t, sdsl::sd_vector<>> *element, uint32_t bufferSize) {
       insert(std::get<1>(*element)/bufferSize, (void*)element);
     }
 
-    uint64_t eefsize() {
-      uint64_t returnSize = 0;
+    uint32_t eefsize() {
+      uint32_t returnSize = 0;
       returnSize += sizeof(u_exp);
       returnSize += sizeof(std::vector<level>);
       returnSize += sizeof(level) * (u_exp + 1);

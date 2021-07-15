@@ -15,12 +15,12 @@ RedBlackTree::RedBlackTree() {}
 
 RedBlackTree::~RedBlackTree() {}
 
-void RedBlackTree::push(tuple<uint64_t, uint64_t, sd_vector<>> *element, uint64_t bufferSize) {
+void RedBlackTree::push(tuple<uint32_t, uint32_t, sd_vector<>> *element, uint32_t bufferSize) {
   (this -> redBlackTree)[get<1>(*element)] = element;
 }
 
-tuple<uint64_t, uint64_t, sd_vector<>>* RedBlackTree::getPredecessor(uint64_t value, uint64_t bufferSize) {
-  map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>::iterator lowerResult = redBlackTree.lower_bound(value);
+tuple<uint32_t, uint32_t, sd_vector<>>* RedBlackTree::getPredecessor(uint32_t value, uint32_t bufferSize) {
+  map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>::iterator lowerResult = redBlackTree.lower_bound(value);
   if (lowerResult == redBlackTree.begin() && lowerResult -> first > value) {
     return NULL;
   }
@@ -30,11 +30,11 @@ tuple<uint64_t, uint64_t, sd_vector<>>* RedBlackTree::getPredecessor(uint64_t va
   return lowerResult -> second;
 }
 
-uint64_t RedBlackTree::eefsize() {
+uint32_t RedBlackTree::eefsize() {
   //every node use 32 bytes in pointers + memory of key and value
-  uint64_t returnSize = 0;
-  returnSize += sizeof(map<uint64_t, tuple<uint64_t, uint64_t, sd_vector<>>*>);
-  returnSize += (sizeof(uint64_t) + sizeof(tuple<uint64_t, uint64_t, sd_vector<>>*) + 32) * redBlackTree.size();
+  uint32_t returnSize = 0;
+  returnSize += sizeof(map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>);
+  returnSize += (sizeof(uint32_t) + sizeof(tuple<uint32_t, uint32_t, sd_vector<>>*) + 32) * redBlackTree.size();
   return returnSize;
 }
 
