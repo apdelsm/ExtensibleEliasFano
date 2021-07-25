@@ -16,54 +16,52 @@ def operation(ones, writedBits, testFile):
   if retList[0]:
     testFile.write(f'{retList[1]}{retList[2]}{retList[1]}')
 
-testCases = 3
+testCases = 1
 bitLimit = 100000000
-probabilities = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-zeros = [64, 128, 256, 512, 1024]
-ones = [64, 128, 256, 512, 1024]
+probabilities = [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]
+run = [2048, 4096, 8192]
 
 random.seed(9900996)
 
 poissonGenerator = np.random.default_rng(2015735042)
 #poissonRuns
 for test in range(testCases):
-  for maxZeros in zeros:
-    for maxOnes in ones:
-      for probabilitie in probabilities:
-        testFile = open(f'./poissonRuns/z{maxZeros}o{maxOnes}p{probabilitie}t{test}.txt', 'w')
-        testFile.write(f'{bitLimit}\n')
-        remainingBits = bitLimit
-        bitsCount = 0
-        onesCount = 0
+  for runSize in run:
+    for probabilitie in probabilities:
+      testFile = open(f'./poissonRuns/z{runSize}o{runSize}p{probabilitie}t{test}.txt', 'w')
+      testFile.write(f'{bitLimit}\n')
+      remainingBits = bitLimit
+      bitsCount = 0
+      onesCount = 0
 
-        while remainingBits > 0:
-          randZeros = random.randint(1, maxZeros)
+      while remainingBits > 0:
+        randZeros = random.randint(1, runSize)
 
-          if (randZeros > remainingBits):
-            randZeros = remainingBits - 1
-          remainingBits -= randZeros + 1
+        if (randZeros > remainingBits):
+          randZeros = remainingBits - 1
+        remainingBits -= randZeros + 1
 
-          for i in range(randZeros):
-            testFile.write('0')
-            bitsCount += 1
-            operation(onesCount, bitsCount, testFile)
+        for i in range(randZeros):
+          testFile.write('0')
+          bitsCount += 1
+          operation(onesCount, bitsCount, testFile)
 
+        testFile.write('1')
+        bitsCount += 1
+        onesCount += 1
+        operation(onesCount, bitsCount, testFile)
+        
+        randOnes = 0
+        randResult = random.randint(1, 1000)
+        if randResult <= probabilitie:
+          randOnes = poissonGenerator.poisson(runSize/2)
+        if randOnes > remainingBits:
+          randOnes = remainingBits
+        remainingBits -= randOnes
+        for i in range(randOnes):
           testFile.write('1')
           bitsCount += 1
           onesCount += 1
           operation(onesCount, bitsCount, testFile)
-          
-          randOnes = 0
-          randResult = random.randint(1, 100)
-          if randResult <= probabilitie:
-            randOnes = poissonGenerator.poisson(maxOnes/2)
-          if randOnes > remainingBits:
-            randOnes = remainingBits
-          remainingBits -= randOnes
-          for i in range(randOnes):
-            testFile.write('1')
-            bitsCount += 1
-            onesCount += 1
-            operation(onesCount, bitsCount, testFile)
-        testFile.close()
-        print(f'./poissonRuns/z{maxZeros}o{maxOnes}p{probabilitie}t{test}.txt')
+      testFile.close()
+      print(f'./poissonRuns/z{runSize}o{runSize}p{probabilitie}t{test}.txt')

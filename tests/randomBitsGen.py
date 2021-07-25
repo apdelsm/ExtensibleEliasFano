@@ -15,9 +15,9 @@ def operation(ones, writedBits, testFile):
   if retList[0]:
     testFile.write(f'{retList[1]}{retList[2]}{retList[1]}')
 
-testCases = 5
+testCases = 1
 bitLimit = 100000000
-probabilities = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+probabilities = [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]
 
 random.seed(2015735042)
 
@@ -28,7 +28,7 @@ for test in range(testCases):
     testFile = open(f'./randomBits/p{probabilitie}t{test}.txt', 'w')
     testFile.write(f'{bitLimit}\n')
     for bitPos in range(0, bitLimit):
-      randResult = random.randint(1, 100)
+      randResult = random.randint(1, 1000)
       if randResult <= probabilitie:
         bit = 1
       else:
