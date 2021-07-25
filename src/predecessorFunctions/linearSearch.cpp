@@ -9,17 +9,19 @@ using namespace sdsl;
 #ifndef LINEARSEARCH
 #define LINEARSEARCH
 
-tuple<uint32_t, uint32_t, sd_vector<>>* linearSearch(vector<tuple<uint32_t, uint32_t, sd_vector<>>*> &orderedVector, uint32_t element) {
-  for(vector<tuple<uint32_t, uint32_t, sd_vector<>>*>::iterator it = orderedVector.begin(), end = orderedVector.end(); it != end; ++it) {
-    if(element < get<1>(**it)) {
-      if (get<1>(**it) == get<1>(**orderedVector.begin())) {
+tuple<uint32_t, sd_vector<>>* linearSearch(vector<tuple<uint32_t, sd_vector<>>> &orderedVector, uint32_t element, uint32_t *block) {
+  for(vector<tuple<uint32_t, sd_vector<>>>::iterator it = orderedVector.begin(), end = orderedVector.end(); it != end; ++it) {
+    if(element < get<0>(*it)) {
+      if (get<0>(*it) == get<0>(*orderedVector.begin())) {
         return NULL;
       }
       --it;
-      return *it;
+      *block = it - orderedVector.begin();
+      return &(*it);
     }
   }
-  return *((orderedVector).end()-1);
+  *block = orderedVector.end() - 1 - orderedVector.begin();
+  return &(*((orderedVector).end()-1));
 }
 
 #endif
