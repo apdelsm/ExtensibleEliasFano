@@ -1,3 +1,4 @@
+
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -12,10 +13,10 @@
 #include "../include/binarySearch.hpp"
 #include "../include/btree_map.h"
 #include "../include/extensibleEliasFano.hpp"
+#include "../include/extensibleEliasFanoTuplesVector.hpp"
 #include "../include/interpolationSearch.hpp"
 #include "../include/linearSearch.hpp"
 #include "../include/redBlackTree.hpp"
-#include "../include/tuplesVector.hpp"
 #include "../include/vEB.h"
 #include "../include/x-fast-map.h"
 #include "../include/y-fast.h"
@@ -23,12 +24,11 @@
 using namespace std;
 using namespace sdsl;
 
-void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, char action, uint32_t actionNumber = 0, int confId = -1);
+void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFanoTuplesVector *tupleLineal, ExtensibleEliasFanoTuplesVector *tupleInterpolation, ExtensibleEliasFanoTuplesVector *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, char action, uint32_t actionNumber = 0, int confId = -1);
 void runTest(string testFilePath, uint32_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId, char struc);
 int main(int argc, char *argv[]) {
   std::ios::sync_with_stdio(false);
-  vector<uint32_t> bufferSizes = {256, 512, 1024, 2048};
-  ofstream confIds;
+  vector<uint32_t> bufferSizes = {1024, 2048, 4096};
   int idCount = 0;
   for (vector<uint32_t>::iterator bufferIt = bufferSizes.begin(), bufferEnd = bufferSizes.end(); bufferIt != bufferEnd; ++bufferIt){
     
@@ -38,8 +38,10 @@ int main(int argc, char *argv[]) {
     for (const auto & entry : filesystem::directory_iterator(path)) {
       string filePath = entry.path();
       string filename = filePath.substr(filePath.find_last_of("/") + 1);
-      float prob = (float)stoi(filename.substr(1,3)) / 100;
-      int test = stoi(filename.substr(4, filename.find('.')));
+      int pPos = filename.find('p');
+      int tPos = filename.find('t');
+      float prob = (float)stoi(filename.substr(pPos + 1, tPos)) / 100;
+      int test = stoi(filename.substr(tPos + 1, filename.find('.')));
       cout << filePath << endl;
       runTest(filePath, *bufferIt, "Random", prob, 1, 1, test, idCount, *argv[1]);
       ++idCount;
@@ -54,17 +56,17 @@ int main(int argc, char *argv[]) {
       int zPos = filename.find('z');
       int oPos = filename.find('o');
       int pPos = filename.find('p');
+      int tPos = filename.find('t');
       int zeros = stoi(filename.substr(zPos + 1, oPos));
       int ones = stoi(filename.substr(oPos + 1, pPos));
       float prob = (float)stoi(filename.substr(pPos + 1, pPos + 3)) / 100;
-      int test = stoi(filename.substr(pPos + 4, filename.find('.')));
+      int test = stoi(filename.substr(tPos + 1, filename.find('.')));
       cout << filePath << endl;
       runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test, idCount, *argv[1]);
       ++idCount;
     }
         
     // Poisson Runs
-    
     path = "./tests/poissonRuns/";
     for (const auto & entry : filesystem::directory_iterator(path)) {
       string filePath = entry.path();
@@ -72,10 +74,11 @@ int main(int argc, char *argv[]) {
       int zPos = filename.find('z');
       int oPos = filename.find('o');
       int pPos = filename.find('p');
+      int tPos = filename.find('t');
       int zeros = stoi(filename.substr(zPos + 1, oPos));
       int ones = stoi(filename.substr(oPos + 1, pPos));
       float prob = (float)stoi(filename.substr(pPos + 1, pPos + 3)) / 100;
-      int test = stoi(filename.substr(pPos + 4, filename.find('.')));
+      int test = stoi(filename.substr(tPos + 1, filename.find('.')));
       cout << filePath << endl;
       runTest(filePath, *bufferIt, "Random Runs", prob, zeros, ones, test, idCount, *argv[1]);
       ++idCount;
@@ -85,9 +88,9 @@ int main(int argc, char *argv[]) {
 }
 
 void runTest(string testFilePath, uint32_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId, char struc) {
-  ExtensibleEliasFano<TuplesVector> *tupleLineal = NULL;
-  ExtensibleEliasFano<TuplesVector> *tupleInterpolation = NULL;
-  ExtensibleEliasFano<TuplesVector> *tupleBinary = NULL;
+  ExtensibleEliasFanoTuplesVector *tupleLineal = NULL;
+  ExtensibleEliasFanoTuplesVector *tupleInterpolation = NULL;
+  ExtensibleEliasFanoTuplesVector *tupleBinary = NULL;
   ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap = NULL;
   ExtensibleEliasFano<RedBlackTree> *redBlackTree = NULL;
   ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap = NULL;
@@ -103,13 +106,13 @@ void runTest(string testFilePath, uint32_t bufferSize, string testType, float pr
   const uint32_t uExp = ceil(log2(bitsLimit/bufferSize));
 
   if (struc == '0') {
-    tupleLineal = new ExtensibleEliasFano<TuplesVector>(bufferSize, linearSearch);
+    tupleLineal = new ExtensibleEliasFanoTuplesVector(bufferSize, linearSearch);
   }
   else if (struc == '1') {
-    tupleInterpolation = new ExtensibleEliasFano<TuplesVector>(bufferSize, interpolationSearch);
+    tupleInterpolation = new ExtensibleEliasFanoTuplesVector(bufferSize, interpolationSearch);
   }
   else if (struc == '2') {
-    tupleBinary = new ExtensibleEliasFano<TuplesVector>(bufferSize, binarySearch);
+    tupleBinary = new ExtensibleEliasFanoTuplesVector(bufferSize, binarySearch);
   }
   else if (struc == '3') {
     btreeMap = new ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>>(bufferSize);
@@ -178,7 +181,7 @@ void runTest(string testFilePath, uint32_t bufferSize, string testType, float pr
   }
 }
 
-void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFano<TuplesVector> *tupleLineal, ExtensibleEliasFano<TuplesVector> *tupleInterpolation, ExtensibleEliasFano<TuplesVector> *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, char action, uint32_t actionNumber, int confId) {
+void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFanoTuplesVector *tupleLineal, ExtensibleEliasFanoTuplesVector *tupleInterpolation, ExtensibleEliasFanoTuplesVector *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, char action, uint32_t actionNumber, int confId) {
   static uint32_t count = 0;
   static uint32_t ones = 0;
   static uint32_t selects = 0;
@@ -247,14 +250,16 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
     count += 1;
 
     ones += actionNumber;
-    cout << "insert | count: " << count << " | ones: " << ones << endl;
+    //cout << "insert | count: " << count << " | ones: " << ones << endl;
 
     if (tupleLineal) {
       start = chrono::system_clock::now();
       aux = tupleLineal -> pushBit(actionNumber);
       end = chrono::system_clock::now();
       tupleLinealInsertTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (tupleInterpolation) {
@@ -262,7 +267,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = tupleInterpolation -> pushBit(actionNumber);
       end = chrono::system_clock::now();
       tupleInterpolationInsertTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (tupleBinary) {
@@ -270,7 +277,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = tupleBinary -> pushBit(actionNumber);
       end = chrono::system_clock::now();
       tupleBinaryInsertTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (btreeMap) {
@@ -278,7 +287,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = btreeMap -> pushBit(actionNumber);
       end = chrono::system_clock::now();
       btreeMapInsertTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (redBlackTree) {
@@ -286,7 +297,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = redBlackTree -> pushBit(actionNumber);
       end = chrono::system_clock::now();
       redBlackTreeInsertTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (avlMap) {
@@ -294,7 +307,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = avlMap -> pushBit(actionNumber);
       end = chrono::system_clock::now();
       avlMapInsertTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (xFastMap) {
@@ -302,7 +317,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = xFastMap -> pushBit(actionNumber);
       end = chrono::system_clock::now();
       xFastMapInsertTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (yFastMap) {
@@ -310,11 +327,13 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = yFastMap -> pushBit(actionNumber);
       end = chrono::system_clock::now();
       yFastMapInsertTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
-    if (count % 10000 == 0) {
-      cout << "register" << endl;
+    if (count % 1000000 == 0) {
+      cout << "count: " << count << endl;
       static bool header = true;
       ofstream results;
       if (header) {
@@ -393,14 +412,16 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
     uint32_t aux2;
 
     selects += 1;
-    cout << "select: " << actionNumber << endl;
+    //cout << "select: " << actionNumber << endl;
 
     if (tupleLineal) {
       start = chrono::system_clock::now();
       aux = tupleLineal -> select1(actionNumber,aux2);
       end = chrono::system_clock::now();
       tupleLinealSelectTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (tupleInterpolation) {
@@ -408,7 +429,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = tupleInterpolation -> select1(actionNumber,aux2);
       end = chrono::system_clock::now();
       tupleInterpolationSelectTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (tupleBinary) {
@@ -416,7 +439,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = tupleBinary -> select1(actionNumber,aux2);
       end = chrono::system_clock::now();
       tupleBinarySelectTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (btreeMap) {
@@ -424,7 +449,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = btreeMap -> select1(actionNumber,aux2);
       end = chrono::system_clock::now();
       btreeMapSelectTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (redBlackTree) {
@@ -432,7 +459,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = redBlackTree -> select1(actionNumber,aux2);
       end = chrono::system_clock::now();
       redBlackTreeSelectTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (avlMap) {
@@ -440,7 +469,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = avlMap -> select1(actionNumber,aux2);
       end = chrono::system_clock::now();
       avlMapSelectTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (xFastMap) {
@@ -448,7 +479,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = xFastMap -> select1(actionNumber,aux2);
       end = chrono::system_clock::now();
       xFastMapSelectTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (yFastMap) {
@@ -456,21 +489,25 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = yFastMap -> select1(actionNumber,aux2);
       end = chrono::system_clock::now();
       yFastMapSelectTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
   } else {
 
     uint32_t aux;
 
     ranks += 1;
-    cout << "rank: " << actionNumber << endl;
+    //cout << "rank: " << actionNumber << endl;
 
     if (tupleLineal) {
       start = chrono::system_clock::now();
       aux = tupleLineal -> rank1(actionNumber);
       end = chrono::system_clock::now();
       tupleLinealRankTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (tupleInterpolation) {
@@ -478,7 +515,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = tupleInterpolation -> rank1(actionNumber);
       end = chrono::system_clock::now();
       tupleInterpolationRankTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (tupleBinary) {
@@ -486,7 +525,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = tupleBinary -> rank1(actionNumber);
       end = chrono::system_clock::now();
       tupleBinaryRankTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (btreeMap) {
@@ -494,7 +535,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = btreeMap -> rank1(actionNumber);
       end = chrono::system_clock::now();
       btreeMapRankTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (redBlackTree) {
@@ -502,7 +545,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = redBlackTree -> rank1(actionNumber);
       end = chrono::system_clock::now();
       redBlackTreeRankTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (avlMap) {
@@ -510,7 +555,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = avlMap -> rank1(actionNumber);
       end = chrono::system_clock::now();
       avlMapRankTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (xFastMap) {
@@ -518,7 +565,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = xFastMap -> rank1(actionNumber);
       end = chrono::system_clock::now();
       xFastMapRankTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
 
     if (yFastMap) {
@@ -526,7 +575,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = yFastMap -> rank1(actionNumber);
       end = chrono::system_clock::now();
       yFastMapRankTime += end - start;
-      cout << aux << endl;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
     }
   }
 };
