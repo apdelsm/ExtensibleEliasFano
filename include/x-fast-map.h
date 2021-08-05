@@ -156,7 +156,7 @@ class x_fast_map {
       auto node = pred_node(key/bufferSize + 1);
       if (node && std::get<1>(*(std::tuple<uint32_t, uint32_t, sdsl::sd_vector<>> *)(node->value)) <= key) {
         return node->value;
-      } else if(node->prev) {
+      } else if(node && node->prev) {
         return node->prev->value;
       }
       return nullptr;
