@@ -22,7 +22,6 @@ class ExtensibleEliasFano {
     char whereIsPredecessor(uint32_t position);
 
   public:
-    ExtensibleEliasFano(uint32_t bufferSize, tuple<uint32_t, uint32_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint32_t, uint32_t, sd_vector<>>*>&, uint32_t));
     ExtensibleEliasFano(uint32_t bufferSize);
     ExtensibleEliasFano(uint32_t bufferSize, uint32_t u_exp);
     ~ExtensibleEliasFano();
@@ -31,12 +30,6 @@ class ExtensibleEliasFano {
     uint32_t rank1(uint32_t position);
     uint32_t size();
 };
-
-template <class T>
-ExtensibleEliasFano<T>::ExtensibleEliasFano(uint32_t bufferSize, tuple<uint32_t, uint32_t, sd_vector<>>*(*predecessorFunction)(vector<tuple<uint32_t, uint32_t, sd_vector<>>*>&, uint32_t)) {
-  this->buffer = vector<uint32_t>(bufferSize, 0);
-  predecessorStructure = new T(predecessorFunction);
-}
 
 template <class T>
 ExtensibleEliasFano<T>::ExtensibleEliasFano(uint32_t bufferSize) {
