@@ -20,11 +20,12 @@
 #include "../include/vEB.h"
 #include "../include/x-fast-map.h"
 #include "../include/y-fast.h"
+#include "../include/y-fastNUR.h"
 
 using namespace std;
 using namespace sdsl;
 
-void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFanoTuplesVector *tupleLineal, ExtensibleEliasFanoTuplesVector *tupleInterpolation, ExtensibleEliasFanoTuplesVector *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, char action, uint32_t actionNumber = 0, int confId = -1);
+void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFanoTuplesVector *tupleLineal, ExtensibleEliasFanoTuplesVector *tupleInterpolation, ExtensibleEliasFanoTuplesVector *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, ExtensibleEliasFano<y_fast_nur<uint32_t>> *yFastMapNUR, char action, uint32_t actionNumber = 0, int confId = -1);
 void runTest(string testFilePath, uint32_t bufferSize, string testType, float probabilitie, int zerosRunSize, int onesRunSize, int test, int confId, char struc);
 int main(int argc, char *argv[]) {
   std::ios::sync_with_stdio(false);
@@ -96,6 +97,7 @@ void runTest(string testFilePath, uint32_t bufferSize, string testType, float pr
   ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap = NULL;
   ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap = NULL;
   ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap = NULL;
+  ExtensibleEliasFano<y_fast_nur<uint32_t>> *yFastMapNUR = NULL;
   int bitsLimit;
   ifstream testFile(testFilePath);
   if (!testFile.is_open()) {
@@ -104,6 +106,7 @@ void runTest(string testFilePath, uint32_t bufferSize, string testType, float pr
   }
   testFile >> bitsLimit;
   const uint32_t uExp = ceil(log2(bitsLimit/bufferSize));
+  const uint32_t uExpNUR = ceil(log2(bitsLimit));
 
   if (struc == '0') {
     tupleLineal = new ExtensibleEliasFanoTuplesVector(bufferSize, linearSearch);
@@ -129,6 +132,9 @@ void runTest(string testFilePath, uint32_t bufferSize, string testType, float pr
   else if (struc == '7') {
     yFastMap = new ExtensibleEliasFano<y_fast<uint32_t>>(bufferSize, uExp);
   }
+  else if (struc == '8') {
+    yFastMapNUR = new ExtensibleEliasFano<y_fast_nur<uint32_t>>(bufferSize, uExpNUR);
+  }
 
   //iterate over file, for every bit
   char fileRead;
@@ -140,21 +146,21 @@ void runTest(string testFilePath, uint32_t bufferSize, string testType, float pr
       testFile >> actionNumber;
       action = 's';
       testFile.get(fileRead);
-      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, action, actionNumber);
+      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, yFastMapNUR, action, actionNumber);
     } else if (fileRead == 'r') {
       testFile >> actionNumber;
       action = 'r';
       testFile.get(fileRead);
-      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, action, actionNumber);
+      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, yFastMapNUR, action, actionNumber);
     } else if (fileRead == '0' || fileRead == '1') {
       actionNumber = fileRead - '0';
       action = 'i';
-      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, action, actionNumber, confId);
+      manageBit(testType, bufferSize, probabilitie, zerosRunSize, onesRunSize, test, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, yFastMapNUR, action, actionNumber, confId);
     }
   }
   testFile.close();
 
-  manageBit("", 0, 0, 1, 1, 0, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, 'c');
+  manageBit("", 0, 0, 1, 1, 0, tupleLineal, tupleInterpolation, tupleBinary, btreeMap, redBlackTree, avlMap, xFastMap, yFastMap, yFastMapNUR, 'c');
   if (struc == '0') {
     delete tupleLineal;
   }
@@ -179,9 +185,12 @@ void runTest(string testFilePath, uint32_t bufferSize, string testType, float pr
   else if (struc == '7') {
     delete yFastMap;
   }
+  else if (struc == '8') {
+    delete yFastMapNUR;
+  }
 }
 
-void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFanoTuplesVector *tupleLineal, ExtensibleEliasFanoTuplesVector *tupleInterpolation, ExtensibleEliasFanoTuplesVector *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, char action, uint32_t actionNumber, int confId) {
+void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zerosRunSize, int onesRunSize, int test, ExtensibleEliasFanoTuplesVector *tupleLineal, ExtensibleEliasFanoTuplesVector *tupleInterpolation, ExtensibleEliasFanoTuplesVector *tupleBinary, ExtensibleEliasFano<btree::btree_map<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *btreeMap, ExtensibleEliasFano<RedBlackTree> *redBlackTree, ExtensibleEliasFano<avl_tree<uint32_t, tuple<uint32_t, uint32_t, sd_vector<>>*>> *avlMap, ExtensibleEliasFano<x_fast_map<uint32_t>> *xFastMap, ExtensibleEliasFano<y_fast<uint32_t>> *yFastMap, ExtensibleEliasFano<y_fast_nur<uint32_t>> *yFastMapNUR, char action, uint32_t actionNumber, int confId) {
   static uint32_t count = 0;
   static uint32_t ones = 0;
   static uint32_t selects = 0;
@@ -213,6 +222,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
   static chrono::duration<float, milli> yFastMapInsertTime = start - start;
   static chrono::duration<float, milli> yFastMapSelectTime = start - start;
   static chrono::duration<float, milli> yFastMapRankTime = start - start;
+  static chrono::duration<float, milli> yFastMapNURInsertTime = start - start;
+  static chrono::duration<float, milli> yFastMapNURSelectTime = start - start;
+  static chrono::duration<float, milli> yFastMapNURRankTime = start - start;
 
   if (action == 'c') {
     count = 0;
@@ -243,6 +255,9 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
     yFastMapInsertTime = start - start;
     yFastMapSelectTime = start - start;
     yFastMapRankTime = start - start;
+    yFastMapNURInsertTime = start - start;
+    yFastMapNURSelectTime = start - start;
+    yFastMapNURRankTime = start - start;
   } else if (action == 'i') {
 
     uint32_t aux;
@@ -332,6 +347,16 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       }
     }
 
+    if (yFastMapNUR) {
+      start = chrono::system_clock::now();
+      aux = yFastMapNUR -> pushBit(actionNumber);
+      end = chrono::system_clock::now();
+      yFastMapNURInsertTime += end - start;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
+    }
+
     if (count % 1000000 == 0) {
       cout << "count: " << count << endl;
       static bool header = true;
@@ -359,7 +384,10 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
           results.open("xFastMap.csv", ofstream::trunc);
         }
         if (yFastMap) {
-          results.open("yFastMap.csv", ofstream::trunc);
+          results.open("yFastMapUR.csv", ofstream::trunc);
+        }
+        if (yFastMapNUR) {
+          results.open("yFastMapNUR.csv", ofstream::trunc);
         }
         results << "confID;Ones;Size;Selects;Ranks;Insert Time;Random Select Time;Random Rank Time" << endl;
         header = false;
@@ -401,9 +429,14 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
                 << xFastMapInsertTime.count() << ";" << xFastMapSelectTime.count() << ";" << xFastMapRankTime.count() << endl;
       }
       if (yFastMap) {
-        results.open("yFastMap.csv", ofstream::app);
+        results.open("yFastMapUR.csv", ofstream::app);
         results << confId << ";" << ones << ";" << yFastMap -> size() << ";" << selects << ";" << ranks << ";"
                 << yFastMapInsertTime.count() << ";" << yFastMapSelectTime.count() << ";" << yFastMapRankTime.count() << endl;
+      }
+      if (yFastMapNUR) {
+        results.open("yFastMapNUR.csv", ofstream::app);
+        results << confId << ";" << ones << ";" << yFastMapNUR -> size() << ";" << selects << ";" << ranks << ";"
+                << yFastMapNURInsertTime.count() << ";" << yFastMapNURSelectTime.count() << ";" << yFastMapNURRankTime.count() << endl;
       }
       results.close();
     }
@@ -493,6 +526,15 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
         cout << aux << endl;
       }
     }
+    if (yFastMapNUR) {
+      start = chrono::system_clock::now();
+      aux = yFastMapNUR -> select1(actionNumber,aux2);
+      end = chrono::system_clock::now();
+      yFastMapNURSelectTime += end - start;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
+    }
   } else {
 
     uint32_t aux;
@@ -575,6 +617,15 @@ void manageBit(string testType, uint32_t bufferSize, float probabilitie, int zer
       aux = yFastMap -> rank1(actionNumber);
       end = chrono::system_clock::now();
       yFastMapRankTime += end - start;
+      if (count > ((1<<32)-1)) {
+        cout << aux << endl;
+      }
+    }
+    if (yFastMapNUR) {
+      start = chrono::system_clock::now();
+      aux = yFastMapNUR -> rank1(actionNumber);
+      end = chrono::system_clock::now();
+      yFastMapNURRankTime += end - start;
       if (count > ((1<<32)-1)) {
         cout << aux << endl;
       }
